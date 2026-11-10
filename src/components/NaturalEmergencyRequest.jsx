@@ -28,12 +28,13 @@ const BLOOD_COMPATIBILITY = {
 };
 
 /**
- * Example quick-prompt queries to assist users in emergencies.
+ * Example quick-prompt queries focused exclusively on Prayagraj, UP.
  */
 const QUICK_PROMPT_EXAMPLES = [
-  'Need A+ blood urgently in Civil Lines',
-  'Urgent: 2 units of O- required at Apollo Hospital for trauma surgery',
-  'Looking for B+ donor near Connaught Place for thalassemia patient'
+  'Need A+ blood urgently in Civil Lines, Prayagraj',
+  'Urgent: 2 units of O- required at Swaroop Rani Nehru (SRN) Hospital for trauma surgery',
+  'Need B+ donor near Teliarganj / MNNIT Prayagraj',
+  'Looking for AB+ blood near Jeevan Jyoti Hospital, George Town'
 ];
 
 /**
@@ -93,24 +94,59 @@ const NaturalEmergencyRequest = ({ onParsed, className = '' }) => {
   };
 
   /**
-   * Resilient client-side heuristic parser when offline.
+   * Resilient client-side heuristic parser strictly mapping to Prayagraj zones.
    * @param {string} text - Raw natural language query.
    * @returns {Object} Structured emergency payload.
    */
   const fallbackExtract = (text) => {
-    const bloodMatch = text.match(/\b(A|B|AB|O)[+-]\b/i);
-    const urgencyMatch = text.match(/\b(critical|urgent|urgently|emergency|immediately|asap)\b/i);
-    const locationMatch = text.match(/(?:in|at|near|around)\s+([A-Za-z0-9\s,.-]+?)(?:\s+(?:for|urgent|urgently|need|today)|$)/i);
+    const bloodMatch = text.match(/\b(AB|A|B|O)\s*([+-]|\bpositive\b|\bnegative\b|\bpos\b|\bneg\b)/i);
+    let detectedGroup = 'A+';
+    if (bloodMatch) {
+      const type = bloodMatch[1].toUpperCase();
+      const sign = bloodMatch[2].toLowerCase();
+      const rh = (sign === '-' || sign.includes('neg')) ? '-' : '+';
+      detectedGroup = `${type}${rh}`;
+    }
 
-    const bloodGroup = bloodMatch ? bloodMatch[0].toUpperCase() : null;
-    const urgency = urgencyMatch ? 'emergency' : 'normal';
-    const location = locationMatch ? locationMatch[1].trim() : 'Location extracted from prompt';
+    const urgencyMatch = text.match(/\b(critical|urgent|urgently|emergency|immediately|asap|trauma|surgery)\b/i);
+    const lower = text.toLowerCase();
+    let location = 'Civil Lines, Prayagraj, UP';
+
+    if (lower.includes('srn') || lower.includes('swaroop') || lower.includes('nehru')) {
+      location = 'Swaroop Rani Nehru (SRN) Hospital, George Town, Prayagraj';
+    } else if (lower.includes('jeevan') || lower.includes('jyoti') || lower.includes('lowther') || lower.includes('bai ka bagh')) {
+      location = 'Jeevan Jyoti Hospital, Lowther Road, Prayagraj';
+    } else if (lower.includes('beli') || lower.includes('tej bahadur') || lower.includes('sapru')) {
+      location = 'Tej Bahadur Sapru (Beli) Hospital, Stanley Road, Prayagraj';
+    } else if (lower.includes('kamla') || lower.includes('knmh') || lower.includes('hashimpur')) {
+      location = 'Kamla Nehru Memorial Hospital (KNMH), Tagore Town, Prayagraj';
+    } else if (lower.includes('nazareth')) {
+      location = 'Nazareth Hospital, Civil Lines, Prayagraj';
+    } else if (lower.includes('colvin')) {
+      location = 'Colvin Hospital, Katra, Prayagraj';
+    } else if (lower.includes('teliarganj') || lower.includes('mnnit')) {
+      location = 'Teliarganj / MNNIT, Prayagraj';
+    } else if (lower.includes('george town')) {
+      location = 'George Town, Prayagraj';
+    } else if (lower.includes('chowk')) {
+      location = 'Chowk, Prayagraj';
+    } else if (lower.includes('katra')) {
+      location = 'Old Katra, Prayagraj';
+    } else if (lower.includes('tagore town')) {
+      location = 'Tagore Town, Prayagraj';
+    } else if (lower.includes('naini')) {
+      location = 'Naini Industrial Area, Prayagraj';
+    } else if (lower.includes('jhunsi') || lower.includes('sangam')) {
+      location = 'Jhunsi / Sangam, Prayagraj';
+    } else if (lower.includes('civil lines')) {
+      location = 'Civil Lines, Prayagraj';
+    }
 
     return {
-      blood_group: bloodGroup || 'A+',
+      blood_group: detectedGroup,
       location: location,
-      urgency_level: urgency,
-      patient_notes: text,
+      urgency_level: urgencyMatch ? 'emergency' : 'urgent',
+      patient_notes: `Prayagraj Emergency: "${text}"`,
       raw_query: text
     };
   };
@@ -194,10 +230,10 @@ const NaturalEmergencyRequest = ({ onParsed, className = '' }) => {
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold tracking-tight">
-                AI Natural Emergency Request
+                AI Natural Emergency Request (Prayagraj, UP)
               </h2>
               <p className="text-xs text-white/85">
-                Type in plain language — Gemini AI automatically extracts blood group, location & urgency
+                Type in plain language — Gemini AI maps blood group & location to real Prayagraj medical zones
               </p>
             </div>
           </div>

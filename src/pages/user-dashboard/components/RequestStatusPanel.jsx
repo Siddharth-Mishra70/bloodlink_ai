@@ -29,26 +29,26 @@ const RequestStatusPanel = () => {
     const timer = setTimeout(() => {
       setActiveRequests([
         {
-          id: "REQ-2025-001",
+          id: "REQ-PRG-001",
           bloodType: "O-",
           quantity: 2,
           urgency: "Critical",
           status: "Pending",
           requestedAt: new Date(Date.now() - 1800000), // 30 minutes ago
-          estimatedTime: "45 minutes",
-          bloodBank: "Apollo Blood Bank",
-          location: "Sector 18, Noida"
+          estimatedTime: "25 minutes",
+          bloodBank: "Swaroop Rani Nehru (SRN) Hospital",
+          location: "George Town, Prayagraj"
         },
         {
-          id: "REQ-2025-002",
+          id: "REQ-PRG-002",
           bloodType: "A+",
           quantity: 1,
           urgency: "Urgent",
           status: "Approved",
           requestedAt: new Date(Date.now() - 3600000), // 1 hour ago
           estimatedTime: "Ready for pickup",
-          bloodBank: "Max Healthcare Blood Center",
-          location: "Sector 19, Noida"
+          bloodBank: "Jeevan Jyoti Hospital",
+          location: "Lowther Road, Prayagraj"
         }
       ]);
       setLoading(false);

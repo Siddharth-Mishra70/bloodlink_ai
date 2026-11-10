@@ -18,8 +18,8 @@ import Button from '../../../components/ui/Button';
  * @returns {JSX.Element} Map view with transit direction links.
  */
 const LocationMapView = ({ hospitalAddress, nearbyBloodBanks }) => {
-  // Map viewport center coordinate
-  const [mapCenter, setMapCenter] = useState({ lat: 28.5355, lng: 77.3910 }); // Default to Noida
+  // Map viewport center coordinate: Prayagraj, UP (25.4358° N, 81.8463° E)
+  const [mapCenter, setMapCenter] = useState({ lat: 25.4358, lng: 81.8463 });
   // User geolocation state
   const [isLocationEnabled, setIsLocationEnabled] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
@@ -73,22 +73,38 @@ const LocationMapView = ({ hospitalAddress, nearbyBloodBanks }) => {
     window.open(directionsUrl, '_blank');
   };
 
-  const mockBloodBanks = nearbyBloodBanks || [
+  const mockBloodBanks = nearbyBloodBanks && nearbyBloodBanks.length > 0 ? nearbyBloodBanks : [
     {
-      id: 1,
-      name: 'Apollo Blood Bank',
-      address: 'Sector 26, Noida, UP 201301',
-      lat: 28.5355,
-      lng: 77.3910,
-      distance: '2.3 km'
+      id: 'bb-srn-01',
+      name: 'Swaroop Rani Nehru (SRN) Hospital',
+      address: 'MG Marg, George Town, Prayagraj, UP 211001',
+      lat: 25.4484,
+      lng: 81.8542,
+      distance: '1.8 km'
     },
     {
-      id: 2,
-      name: 'Max Healthcare Blood Center',
-      address: 'Sector 19, Noida, UP 201301',
-      lat: 28.5700,
-      lng: 77.3200,
-      distance: '3.7 km'
+      id: 'bb-jjh-02',
+      name: 'Jeevan Jyoti Hospital Blood Bank',
+      address: '162, Bai Ka Bagh, Lowther Road, Prayagraj, UP 211003',
+      lat: 25.4312,
+      lng: 81.8415,
+      distance: '2.4 km'
+    },
+    {
+      id: 'bb-tbs-03',
+      name: 'Tej Bahadur Sapru (Beli) Hospital',
+      address: 'Stanley Road, Teliarganj, Prayagraj, UP 211002',
+      lat: 25.4630,
+      lng: 81.8420,
+      distance: '3.1 km'
+    },
+    {
+      id: 'bb-naz-05',
+      name: 'Nazareth Hospital Blood Bank',
+      address: '13-A, Kamla Nehru Road, Civil Lines, Prayagraj, UP 211001',
+      lat: 25.4510,
+      lng: 81.8350,
+      distance: '1.2 km'
     }
   ];
 

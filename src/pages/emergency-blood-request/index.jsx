@@ -17,6 +17,7 @@ import BloodAvailabilityPanel from './components/BloodAvailabilityPanel';
 import AlternativeBloodGroupSuggestions from './components/AlternativeBloodGroupSuggestions';
 import LocationMapView from './components/LocationMapView';
 import NaturalEmergencyRequest from '../../components/NaturalEmergencyRequest';
+import { fetchBloodBanks } from '../../services/api';
 
 /**
  * EmergencyBloodRequest Component
@@ -41,55 +42,24 @@ const EmergencyBloodRequest = () => {
   const [requestId, setRequestId] = useState('');
 
   useEffect(() => {
-    // Simulated regional inventory data
-    const mockAvailabilityData = [
-      {
-        id: 'bb001',
-        name: 'Apollo Blood Bank',
-        address: 'Sector 26, Noida, UP 201301',
-        distance: '2.3 km',
-        phone: '+91 9876543210',
-        availability: {
-          'A+': 15, 'A-': 8, 'B+': 12, 'B-': 5,
-          'AB+': 7, 'AB-': 3, 'O+': 20, 'O-': 6
-        },
-        status: 'available',
-        responseTime: '15 mins',
-        rating: 4.8
-      },
-      {
-        id: 'bb002',
-        name: 'Max Healthcare Blood Center',
-        address: 'Sector 19, Noida, UP 201301',
-        distance: '3.7 km',
-        phone: '+91 9876543211',
-        availability: {
-          'A+': 8, 'A-': 4, 'B+': 10, 'B-': 2,
-          'AB+': 5, 'AB-': 1, 'O+': 18, 'O-': 4
-        },
-        status: 'available',
-        responseTime: '20 mins',
-        rating: 4.6
-      },
-      {
-        id: 'bb003',
-        name: 'Fortis Blood Bank',
-        address: 'Sector 62, Noida, UP 201309',
-        distance: '5.1 km',
-        phone: '+91 9876543212',
-        availability: {
-          'A+': 3, 'A-': 1, 'B+': 6, 'B-': 0,
-          'AB+': 2, 'AB-': 0, 'O+': 12, 'O-': 2
-        },
-        status: 'low_stock',
-        responseTime: '25 mins',
-        rating: 4.4
+    // Default location to Prayagraj, Uttar Pradesh (Civil Lines)
+    setUserLocation({ lat: 25.4358, lng: 81.8463 });
+
+    // Fetch verified Prayagraj blood bank facilities from backend
+    async function loadPrayagrajBanks() {
+      try {
+        const banks = await fetchBloodBanks();
+        if (Array.isArray(banks) && banks.length > 0) {
+          setAvailabilityData(banks);
+        }
+      } catch (err) {
+        console.warn('Backend blood banks sync offline, using local Prayagraj data:', err);
       }
-    ];
+    }
 
-    setAvailabilityData(mockAvailabilityData);
+    loadPrayagrajBanks();
 
-    // Resolve user geolocation coordinates
+    // Resolve user geolocation coordinates if granted
     if (navigator.geolocation) {
       navigator.geolocation?.getCurrentPosition(
         (position) => {
@@ -99,7 +69,7 @@ const EmergencyBloodRequest = () => {
           });
         },
         (error) => {
-          console.log('Location access denied:', error);
+          console.log('Location access default to Prayagraj center:', error);
         }
       );
     }
@@ -170,9 +140,14 @@ const EmergencyBloodRequest = () => {
                 <div className="flex items-center space-x-3">
                   <Icon name="AlertTriangle" size={24} />
                   <div>
-                    <h1 className="text-lg font-semibold">Emergency Blood Request Portal</h1>
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-lg font-semibold">Prayagraj Emergency Blood Request Portal</h1>
+                      <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        Prayagraj, UP (25.4358° N, 81.8463° E)
+                      </span>
+                    </div>
                     <p className="text-sm opacity-90">
-                      For immediate life-threatening trauma, dial 108 immediately
+                      Dispatched across SRN Hospital, Jeevan Jyoti, Beli, KNMH & Prayagraj donors. For trauma dial 108.
                     </p>
                   </div>
                 </div>

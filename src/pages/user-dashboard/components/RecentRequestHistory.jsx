@@ -24,42 +24,44 @@ const RecentRequestHistory = () => {
     const timer = setTimeout(() => {
       setRecentRequests([
         {
-          id: "REQ-2024-156",
+          id: "REQ-PRG-156",
           bloodType: "B+",
           quantity: 1,
           urgency: "Normal",
           status: "Fulfilled",
           requestedAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
           fulfilledAt: new Date(Date.now() - 86400000 * 2 + 3600000), // 2 days ago + 1 hour
-          bloodBank: "Fortis Blood Center",
-          location: "Sector 62, Noida",
-          patientName: "Rajesh Kumar",
-          hospitalName: "Fortis Hospital"
+          bloodBank: "Tej Bahadur Sapru (Beli) Hospital",
+          location: "Stanley Road, Prayagraj",
+          patientName: "Satish Shukla",
+          hospitalName: "Beli Hospital, Prayagraj"
         },
         {
-          id: "REQ-2024-142",
+          id: "REQ-PRG-142",
           bloodType: "O+",
           quantity: 2,
           urgency: "Urgent",
           status: "Fulfilled",
           requestedAt: new Date(Date.now() - 86400000 * 7), // 7 days ago
           fulfilledAt: new Date(Date.now() - 86400000 * 7 + 7200000), // 7 days ago + 2 hours
-          bloodBank: "Max Healthcare Blood Center",
-          location: "Sector 19, Noida",
-          patientName: "Priya Sharma",
-          hospitalName: "Max Super Speciality Hospital"
+          bloodBank: "Jeevan Jyoti Hospital Blood Bank",
+          location: "Lowther Road, Prayagraj",
+          patientName: "Meena Devi",
+          hospitalName: "Jeevan Jyoti Hospital"
         },
         {
-          id: "REQ-2024-128",
+          id: "REQ-PRG-128",
           bloodType: "A-",
           quantity: 1,
           urgency: "Critical",
           status: "Declined",
           requestedAt: new Date(Date.now() - 86400000 * 14), // 14 days ago
-          bloodBank: "Apollo Blood Bank",
-          location: "Sector 18, Noida",
-          declineReason: "Blood type not available",
-          alternativeProvided: "Referred to AIIMS Blood Bank"
+          bloodBank: "Swaroop Rani Nehru (SRN) Hospital",
+          location: "George Town, Prayagraj",
+          patientName: "Harish Chandra",
+          hospitalName: "SRN Trauma Centre, Prayagraj",
+          declineReason: "Blood type temporarily allocated to emergency OT",
+          alternativeProvided: "Referred to Jeevan Jyoti Blood Bank"
         },
         {
           id: "REQ-2024-115",
@@ -69,10 +71,10 @@ const RecentRequestHistory = () => {
           status: "Fulfilled",
           requestedAt: new Date(Date.now() - 86400000 * 21), // 21 days ago
           fulfilledAt: new Date(Date.now() - 86400000 * 21 + 1800000), // 21 days ago + 30 minutes
-          bloodBank: "Kailash Hospital Blood Bank",
-          location: "Sector 27, Noida",
-          patientName: "Amit Patel",
-          hospitalName: "Kailash Hospital"
+          bloodBank: "Kamla Nehru Memorial Hospital (KNMH)",
+          location: "Tagore Town, Prayagraj",
+          patientName: "Dr. Alok Banerjee",
+          hospitalName: "KNMH, Prayagraj"
         }
       ]);
       setLoading(false);

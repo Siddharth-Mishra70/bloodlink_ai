@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
+import { fetchBloodBanks } from '../../../services/api';
 
 /**
  * BloodAvailabilityPanel Component
@@ -26,65 +27,30 @@ const BloodAvailabilityPanel = ({ selectedBloodGroup, userLocation }) => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
-    // Fetch simulated real-time inventory from regional blood banks
-    const fetchAvailability = () => {
+    // Fetch real-time inventory from Prayagraj blood banks
+    const loadAvailability = async () => {
       setIsLoading(true);
-      
-      const timer = setTimeout(() => {
-        const mockData = [
-          {
-            id: 'bb001',
-            name: 'Apollo Blood Bank',
-            address: 'Sector 26, Noida, UP 201301',
-            distance: '2.3 km',
-            phone: '+91 9876543210',
-            availability: {
-              'A+': 15, 'A-': 8, 'B+': 12, 'B-': 5,
-              'AB+': 7, 'AB-': 3, 'O+': 20, 'O-': 6
-            },
-            status: 'available',
-            responseTime: '15 mins',
-            rating: 4.8
-          },
-          {
-            id: 'bb002',
-            name: 'Max Healthcare Blood Center',
-            address: 'Sector 19, Noida, UP 201301',
-            distance: '3.7 km',
-            phone: '+91 9876543211',
-            availability: {
-              'A+': 8, 'A-': 4, 'B+': 10, 'B-': 2,
-              'AB+': 5, 'AB-': 1, 'O+': 18, 'O-': 4
-            },
-            status: 'available',
-            responseTime: '20 mins',
-            rating: 4.6
-          },
-          {
-            id: 'bb003',
-            name: 'Fortis Blood Bank',
-            address: 'Sector 62, Noida, UP 201309',
-            distance: '5.1 km',
-            phone: '+91 9876543212',
-            availability: {
-              'A+': 3, 'A-': 1, 'B+': 6, 'B-': 0,
-              'AB+': 2, 'AB-': 0, 'O+': 12, 'O-': 2
-            },
-            status: 'low_stock',
-            responseTime: '25 mins',
-            rating: 4.4
-          }
-        ];
-
-        setAvailabilityData(mockData);
+      try {
+        const banks = await fetchBloodBanks();
+        if (Array.isArray(banks) && banks.length > 0) {
+          // Format distances and response times for display
+          const formatted = banks.map(b => ({
+            ...b,
+            distance: b.distance || '2.1 km',
+            responseTime: b.responseTime || b.response_time || '15 mins',
+            status: b.status || 'available'
+          }));
+          setAvailabilityData(formatted);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Prayagraj blood banks from backend:', err);
+      } finally {
         setIsLoading(false);
         setLastUpdated(new Date());
-      }, 1000);
-
-      return () => clearTimeout(timer);
+      }
     };
 
-    fetchAvailability();
+    loadAvailability();
   }, [selectedBloodGroup]);
 
   /**
@@ -113,7 +79,7 @@ const BloodAvailabilityPanel = ({ selectedBloodGroup, userLocation }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <Icon name="Activity" size={20} className="text-primary" />
-          <h3 className="text-lg font-semibold text-text-primary">Nearby Live Availability</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-text-primary">Prayagraj Live Availability</h3>
         </div>
         <div className="text-xs text-text-secondary">
           Updated {lastUpdated?.toLocaleTimeString()}

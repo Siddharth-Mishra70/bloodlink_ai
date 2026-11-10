@@ -21,6 +21,7 @@ from database import (
     save_blood_request,
     fetch_active_requests,
     fetch_blood_inventory,
+    fetch_prayagraj_blood_banks,
     supabase
 )
 from models import (
@@ -146,14 +147,20 @@ async def parse_emergency_request(payload: ParseRequestPayload):
         )
 
     prompt = f"""
-You are an expert emergency medical dispatch AI for BloodLink AI.
+You are an expert emergency medical dispatch AI for BloodLink AI specifically serving Prayagraj (formerly Allahabad), Uttar Pradesh, India.
 Analyze the following emergency blood request text query and extract structured information.
+
+CRITICAL PRAYAGRAJ LOCATION RULES:
+- You must strictly map and localize the extracted location to real Prayagraj zones, hospitals, or landmarks.
+- Key Prayagraj Hospitals: "Swaroop Rani Nehru (SRN) Hospital, Prayagraj", "Jeevan Jyoti Hospital, Prayagraj", "Tej Bahadur Sapru (Beli) Hospital, Prayagraj", "Kamla Nehru Memorial Hospital (KNMH), Prayagraj", "Nazareth Hospital, Prayagraj", "Colvin Hospital, Prayagraj".
+- Key Prayagraj Zones: "Civil Lines, Prayagraj", "George Town, Prayagraj", "Teliarganj / MNNIT, Prayagraj", "Chowk, Prayagraj", "Old Katra, Prayagraj", "Tagore Town, Prayagraj", "Naini, Prayagraj", "Jhunsi, Prayagraj", "Dhumanganj, Prayagraj".
+- Normalize the extracted location to include ", Prayagraj, UP". If the query is ambiguous or mentions a location outside Prayagraj, default to the closest Prayagraj medical zone (e.g. "Civil Lines, Prayagraj, UP").
 
 Query: "{payload.query}"
 
 Return a valid JSON object with EXACTLY the following keys:
 - "blood_group": The standardized ABO/Rh blood group (e.g., "O-", "O+", "A+", "A-", "B+", "B-", "AB+", "AB-") or null if not detected.
-- "location": The hospital, clinic, address, or geographic city mentioned, or null if not detected.
+- "location": The formatted Prayagraj location or hospital string (e.g. "Civil Lines, Prayagraj, UP", "Swaroop Rani Nehru (SRN) Hospital, George Town, Prayagraj").
 - "urgency_level": Must be one of ["critical", "urgent", "normal"] based on the clinical situation described.
 - "patient_notes": Summary of patient condition, units required, or relevant clinical details.
 
@@ -322,6 +329,12 @@ async def list_requests():
 async def get_inventory():
     """Returns current blood unit availability by blood group."""
     return await fetch_blood_inventory()
+
+
+@app.get("/api/blood-banks", summary="Get Prayagraj Verified Blood Banks")
+async def get_blood_banks():
+    """Returns verified blood banks and hospitals in Prayagraj, UP."""
+    return await fetch_prayagraj_blood_banks()
 
 
 # ---------------------------------------------------------

@@ -29,14 +29,14 @@ const EmergencyAccessCard = () => {
     // Populate mock nearest facility coordinates
     const timer = setTimeout(() => {
       setCurrentLocation({
-        address: "Sector 18, Noida, Uttar Pradesh",
-        coordinates: { lat: 28.5706, lng: 77.3272 }
+        address: "MG Marg, Civil Lines, Prayagraj, Uttar Pradesh",
+        coordinates: { lat: 25.4358, lng: 81.8463 }
       });
       setNearestBloodBank({
-        name: "Apollo Blood Bank",
+        name: "Swaroop Rani Nehru (SRN) Hospital Blood Bank",
         distance: "1.2 km",
         availability: "Available",
-        bloodTypes: ["A+", "B+", "O+", "AB+"]
+        bloodTypes: ["A+", "B+", "O+", "O-", "AB+"]
       });
       setLocationStatus('active');
     }, 1000);

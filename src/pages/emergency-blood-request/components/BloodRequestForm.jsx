@@ -205,7 +205,7 @@ const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
           <Input
             value={naturalQuery}
             onChange={(e) => setNaturalQuery(e?.target?.value)}
-            placeholder="e.g. Need 2 units O- urgently at Max Hospital Saket for bypass surgery..."
+            placeholder="e.g. Need 2 units O- urgently at Swaroop Rani Nehru Hospital (SRN), Prayagraj..."
             className="flex-1 text-xs h-9 bg-white"
           />
           <Button
@@ -284,7 +284,7 @@ const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Hospital / Clinic Name"
-          placeholder="e.g. Max Super Speciality Hospital"
+          placeholder="e.g. Swaroop Rani Nehru (SRN) Hospital / Jeevan Jyoti"
           value={formData?.hospitalName}
           onChange={(e) => handleInputChange('hospitalName', e?.target?.value)}
           error={errors?.hospitalName}
@@ -292,7 +292,7 @@ const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
         />
         <Input
           label="Hospital Ward / Room / Address"
-          placeholder="e.g. ICU 3rd Floor, Sector 19"
+          placeholder="e.g. ICU 2nd Floor, George Town / Civil Lines, Prayagraj"
           value={formData?.hospitalAddress}
           onChange={(e) => handleInputChange('hospitalAddress', e?.target?.value)}
           error={errors?.hospitalAddress}

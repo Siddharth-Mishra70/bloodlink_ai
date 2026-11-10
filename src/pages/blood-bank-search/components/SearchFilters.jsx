@@ -99,7 +99,7 @@ const SearchFilters = ({ filters, onFiltersChange, onClearFilters, onGetCurrentL
         <div className="flex items-center space-x-2 mb-2">
           <Input
             type="text"
-            placeholder="Enter location or PIN code"
+            placeholder="Prayagraj zone or PIN (e.g. Civil Lines, 211001)"
             value={filters?.location}
             onChange={handleLocationChange}
             className="flex-1"
@@ -112,6 +112,18 @@ const SearchFilters = ({ filters, onFiltersChange, onClearFilters, onGetCurrentL
           >
             <Icon name="Crosshair" size={16} />
           </Button>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {['Civil Lines', 'George Town', 'Teliarganj', 'Chowk'].map((zone) => (
+            <button
+              key={zone}
+              type="button"
+              onClick={() => onFiltersChange({ ...filters, location: zone })}
+              className="text-[11px] px-2 py-0.5 rounded bg-muted hover:bg-primary/10 hover:text-primary text-text-secondary border border-border"
+            >
+              {zone}
+            </button>
+          ))}
         </div>
       </div>
 

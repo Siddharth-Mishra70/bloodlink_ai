@@ -29,30 +29,30 @@ const PersonalizedRecommendations = () => {
         nearbyBloodBanks: [
           {
             id: 1,
-            name: "Apollo Blood Bank",
+            name: "Swaroop Rani Nehru (SRN) Hospital",
             distance: "1.2 km",
-            availability: { "O+": 15, "O-": 8, "A+": 12, "B+": 10 },
+            availability: { "O+": 32, "O-": 14, "A+": 25, "B+": 20 },
             rating: 4.8,
-            responseTime: "15 minutes",
-            address: "Sector 18, Noida"
+            responseTime: "12 minutes",
+            address: "MG Marg, George Town, Prayagraj"
           },
           {
             id: 2,
-            name: "Max Healthcare Blood Center",
+            name: "Jeevan Jyoti Hospital Blood Bank",
             distance: "2.1 km",
-            availability: { "O+": 22, "O-": 5, "A+": 18, "B+": 14 },
+            availability: { "O+": 22, "O-": 8, "A+": 18, "B+": 14 },
             rating: 4.7,
-            responseTime: "20 minutes",
-            address: "Sector 19, Noida"
+            responseTime: "15 minutes",
+            address: "Lowther Road, Prayagraj"
           }
         ],
         donationCamps: [
           {
             id: 1,
-            title: "Rotary Club Blood Donation Camp",
-            date: "15 Sep 2025",
-            location: "Community Center, Sector 15, Noida",
-            organizer: "Rotary Blood Bank"
+            title: "Prayagraj Youth Blood Donation Drive",
+            date: "Every Saturday & Sunday",
+            location: "MNNIT Campus, Teliarganj, Prayagraj",
+            organizer: "Prayagraj Red Cross & SRN Blood Centre"
           }
         ]
       });

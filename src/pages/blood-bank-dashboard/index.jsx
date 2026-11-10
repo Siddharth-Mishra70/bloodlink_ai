@@ -18,6 +18,7 @@ import ActiveRequestsPanel from './components/ActiveRequestsPanel';
 import QuickStatsCards from './components/QuickStatsCards';
 import AIForecastPanel from './components/AIForecastPanel';
 import NotificationCenter from './components/NotificationCenter';
+import { fetchBloodInventory } from '../../services/api';
 
 /**
  * BloodBankDashboard Component
@@ -36,7 +37,7 @@ const BloodBankDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Blood inventory stock levels partitioned by ABO blood group and Rh factor
-  const [inventoryData] = useState([
+  const [inventoryData, setInventoryData] = useState([
     {
       id: 1,
       bloodGroup: 'A+',
@@ -105,51 +106,51 @@ const BloodBankDashboard = () => {
     }
   ]);
 
-  // Active incoming blood requests submitted by hospitals and trauma centers
+  // Active incoming blood requests submitted by hospitals across Prayagraj
   const [activeRequests] = useState([
     {
       id: 1,
-      patientName: 'Rajesh Kumar',
+      patientName: 'Harish Chandra',
       patientAge: 45,
       bloodGroup: 'O-',
       quantity: 3,
       urgency: 'Critical',
-      hospital: 'Apollo Hospital',
-      contactNumber: '+91 98765 43210',
+      hospital: 'Swaroop Rani Nehru (SRN) Hospital, Prayagraj',
+      contactNumber: '+91 532 2256056',
       requestTime: new Date(Date.now() - 900000),
       timeAgo: '15 minutes ago',
       timeAgoMinutes: 15,
-      distance: '2.3 km away',
-      notes: 'Emergency surgery required. Patient is in critical condition.'
+      distance: '1.8 km away',
+      notes: 'Emergency trauma surgery in progress at SRN Trauma Centre.'
     },
     {
       id: 2,
-      patientName: 'Priya Sharma',
+      patientName: 'Meena Devi',
       patientAge: 32,
       bloodGroup: 'A+',
       quantity: 2,
       urgency: 'Urgent',
-      hospital: 'Max Healthcare',
-      contactNumber: '+91 87654 32109',
+      hospital: 'Jeevan Jyoti Hospital, Prayagraj',
+      contactNumber: '+91 532 2417400',
       requestTime: new Date(Date.now() - 1800000),
       timeAgo: '30 minutes ago',
       timeAgoMinutes: 30,
-      distance: '1.8 km away',
-      notes: 'Scheduled surgery tomorrow morning.'
+      distance: '2.4 km away',
+      notes: 'Scheduled orthopedic surgery tomorrow morning.'
     },
     {
       id: 3,
-      patientName: 'Amit Patel',
+      patientName: 'Satish Shukla',
       patientAge: 28,
       bloodGroup: 'B+',
       quantity: 1,
       urgency: 'Normal',
-      hospital: 'Fortis Hospital',
-      contactNumber: '+91 76543 21098',
+      hospital: 'Tej Bahadur Sapru (Beli) Hospital, Prayagraj',
+      contactNumber: '+91 532 2540225',
       requestTime: new Date(Date.now() - 3600000),
       timeAgo: '1 hour ago',
       timeAgoMinutes: 60,
-      distance: '4.1 km away',
+      distance: '3.1 km away',
       notes: 'Regular transfusion for thalassemia patient.'
     }
   ]);
@@ -275,10 +276,10 @@ const BloodBankDashboard = () => {
       type: 'request',
       priority: 'low',
       title: 'New Blood Request',
-      message: 'Regular transfusion request for B+ blood from Fortis Hospital.',
+      message: 'Regular transfusion request for B+ blood from Tej Bahadur Sapru (Beli) Hospital, Prayagraj.',
       timeAgo: '1 hour ago',
       read: true,
-      location: 'Fortis Hospital'
+      location: 'Beli Hospital, Prayagraj'
     },
     {
       id: 4,
@@ -294,19 +295,43 @@ const BloodBankDashboard = () => {
     }
   ]);
 
-  // Set up live clock timer and simulated fetch completion
+  // Set up live clock timer and fetch live inventory from backend
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    const loadTimer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    // Sync live blood inventory from FastAPI / Node backend
+    async function loadBackendInventory() {
+      try {
+        const liveStock = await fetchBloodInventory();
+        if (Array.isArray(liveStock) && liveStock.length > 0) {
+          setInventoryData(prev =>
+            prev.map(item => {
+              const matched = liveStock.find(l => l.blood_group === item.bloodGroup);
+              if (matched) {
+                return {
+                  ...item,
+                  currentStock: matched.current_stock ?? item.currentStock,
+                  minimumRequired: matched.minimum_required ?? item.minimumRequired,
+                  daysUntilExpiry: matched.days_until_expiry ?? item.daysUntilExpiry
+                };
+              }
+              return item;
+            })
+          );
+        }
+      } catch (err) {
+        console.warn('Backend inventory offline, using cached snapshot:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadBackendInventory();
 
     return () => {
       clearInterval(timer);
-      clearTimeout(loadTimer);
     };
   }, []);
 
@@ -419,7 +444,12 @@ const BloodBankDashboard = () => {
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-text-primary mb-2">Blood Bank Dashboard</h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Prayagraj Blood Bank Operations Hub</h1>
+                  <span className="text-xs font-semibold bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">
+                    Prayagraj, UP
+                  </span>
+                </div>
                 <div className="flex items-center space-x-4 text-sm text-text-secondary">
                   <div className="flex items-center space-x-1">
                     <Icon name="Clock" size={16} />

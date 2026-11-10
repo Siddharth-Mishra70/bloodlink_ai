@@ -183,8 +183,8 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
             required
           />
           <Input
-            label="City / Region"
-            placeholder="e.g. Prayagraj / Noida"
+            label="City / Locality (Prayagraj)"
+            placeholder="e.g. Civil Lines / George Town, Prayagraj"
             value={formData?.location}
             onChange={(e) => handleInputChange('location', e?.target?.value)}
             error={errors?.location}
@@ -195,7 +195,7 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
         {/* PIN Code */}
         <Input
           label="Postal PIN Code (6 Digits)"
-          placeholder="201301"
+          placeholder="211001"
           value={formData?.pinCode}
           onChange={(e) => handleInputChange('pinCode', e?.target?.value)}
           error={errors?.pinCode}

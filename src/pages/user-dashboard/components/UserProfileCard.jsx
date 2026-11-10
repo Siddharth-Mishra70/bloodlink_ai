@@ -35,9 +35,10 @@ const UserProfileCard = () => {
         age: 32,
         gender: "Male",
         location: {
-          city: "Noida",
+          city: "Prayagraj",
+          locality: "Civil Lines",
           state: "Uttar Pradesh",
-          pincode: "201301"
+          pincode: "211001"
         },
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
         memberSince: new Date(2023, 5, 15),

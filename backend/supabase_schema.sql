@@ -66,21 +66,31 @@ CREATE TABLE IF NOT EXISTS public.blood_inventory (
     last_updated TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Seed Initial Inventory Records
+-- Seed Initial Inventory Records (Aggregated Prayagraj Regional Banks)
 INSERT INTO public.blood_inventory (blood_group, current_stock, minimum_required, days_until_expiry)
 VALUES 
-    ('A+', 45, 50, 10),
-    ('A-', 8, 30, 2),
-    ('B+', 78, 35, 15),
-    ('B-', 14, 25, 8),
-    ('AB+', 23, 25, 7),
-    ('AB-', 6, 20, 4),
-    ('O+', 92, 60, 20),
-    ('O-', 12, 40, 3)
+    ('A+', 132, 60, 15),
+    ('A-', 45, 30, 4),
+    ('B+', 170, 70, 18),
+    ('B-', 30, 25, 3),
+    ('AB+', 73, 30, 21),
+    ('AB-', 23, 15, 5),
+    ('O+', 216, 90, 22),
+    ('O-', 54, 40, 4)
 ON CONFLICT (blood_group) DO UPDATE 
 SET current_stock = EXCLUDED.current_stock,
     minimum_required = EXCLUDED.minimum_required,
     days_until_expiry = EXCLUDED.days_until_expiry;
+
+-- Seed Sample Prayagraj Donors
+INSERT INTO public.donors (name, blood_group, location, contact)
+VALUES
+    ('Siddharth Mishra', 'O+', 'Civil Lines, Prayagraj', '+91 94152 11001'),
+    ('Priya Srivastava', 'A+', 'George Town, Prayagraj', '+91 98390 22002'),
+    ('Amit Tiwari', 'B+', 'Teliarganj (near MNNIT), Prayagraj', '+91 94506 33003'),
+    ('Mohd. Faizan', 'AB+', 'Chowk, Prayagraj', '+91 98381 44004'),
+    ('Anjali Pandey', 'O-', 'Tagore Town, Prayagraj', '+91 97920 55005')
+ON CONFLICT DO NOTHING;
 
 -- --------------------------------------------------------------------
 -- 5. Row Level Security (RLS) Setup
