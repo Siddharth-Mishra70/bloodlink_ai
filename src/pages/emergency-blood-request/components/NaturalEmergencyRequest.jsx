@@ -6,3 +6,4 @@
 import NaturalEmergencyRequest from '../../../components/NaturalEmergencyRequest';
 
 export default NaturalEmergencyRequest;
+

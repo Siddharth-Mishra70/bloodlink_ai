@@ -10,6 +10,7 @@ import { Send, MessageCircle, Bot, User, Loader } from 'lucide-react';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import { getStreamingChatAssistance } from '../services/openaiService';
+import { sendAiAssistantChat } from '../services/api';
 
 /**
  * AIChat Component
@@ -83,7 +84,28 @@ const AIChat = ({ context = 'general', className = '' }) => {
     setMessages(prev => [...prev, aiMessage]);
 
     try {
-      // Stream tokens dynamically into the active AI message bubble
+      // First attempt: Gemini 2.5 Flash via FastAPI backend
+      try {
+        const historyPayload = messages
+          .filter(m => m.content)
+          .map(m => ({ role: m.type === 'user' ? 'user' : 'model', content: m.content }));
+        
+        const backendResp = await sendAiAssistantChat(inputMessage, historyPayload);
+        if (backendResp?.reply) {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === aiMessageId
+                ? { ...msg, content: backendResp.reply, triage: backendResp.triage_category }
+                : msg
+            )
+          );
+          return;
+        }
+      } catch (backendErr) {
+        console.warn('Backend Gemini chat unavailable, falling back to OpenAI/client stream:', backendErr);
+      }
+
+      // Fallback: OpenAI streaming service
       await getStreamingChatAssistance(
         inputMessage,
         (chunk) => {
