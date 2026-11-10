@@ -1,3 +1,13 @@
+/**
+ * @file index.jsx
+ * @description Administrative Blood Bank Dashboard page.
+ * Serves as the central operational hub for blood bank managers and laboratory staff:
+ * - Real-time blood inventory monitoring and expiration tracking.
+ * - Active patient request processing with emergency triage actions.
+ * - Predictive AI-powered demand forecasting and shortage warnings.
+ * - Centralized medical alert and notification dispatch.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import Header from '../../components/ui/Header';
@@ -9,12 +19,23 @@ import QuickStatsCards from './components/QuickStatsCards';
 import AIForecastPanel from './components/AIForecastPanel';
 import NotificationCenter from './components/NotificationCenter';
 
+/**
+ * BloodBankDashboard Component
+ *
+ * @component
+ * @returns {JSX.Element} Comprehensive blood bank management dashboard.
+ */
 const BloodBankDashboard = () => {
+  // Live ticking clock state for timestamp synchronization
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Active view tab ('overview' | 'inventory' | 'requests' | 'forecast' | 'notifications')
   const [selectedView, setSelectedView] = useState('overview');
+
+  // Simulated initial dashboard data loading state
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data for blood inventory
+  // Blood inventory stock levels partitioned by ABO blood group and Rh factor
   const [inventoryData] = useState([
     {
       id: 1,
@@ -84,7 +105,7 @@ const BloodBankDashboard = () => {
     }
   ]);
 
-  // Mock data for active requests
+  // Active incoming blood requests submitted by hospitals and trauma centers
   const [activeRequests] = useState([
     {
       id: 1,
@@ -133,7 +154,7 @@ const BloodBankDashboard = () => {
     }
   ]);
 
-  // Mock data for quick stats
+  // Aggregate high-level operational statistics
   const [quickStats] = useState([
     {
       id: 1,
@@ -169,7 +190,7 @@ const BloodBankDashboard = () => {
     }
   ]);
 
-  // Mock data for AI forecast
+  // AI-generated shortage prediction models and actionable mitigation steps
   const [forecastData] = useState({
     bloodGroups: [
       { type: 'O-', current: 12, predicted: 25, confidence: 87, status: 'shortage' },
@@ -210,7 +231,7 @@ const BloodBankDashboard = () => {
     ]
   });
 
-  // Mock data for demand predictions chart
+  // Time-series demand prediction curves for chart visualization
   const [demandPredictions] = useState([
     { date: '06/09', predicted: 45, current: 42 },
     { date: '07/09', predicted: 52, current: 38 },
@@ -221,7 +242,7 @@ const BloodBankDashboard = () => {
     { date: '12/09', predicted: 46, current: 22 }
   ]);
 
-  // Mock data for notifications
+  // Real-time system notifications, urgent requests, and inventory alerts
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -273,68 +294,102 @@ const BloodBankDashboard = () => {
     }
   ]);
 
+  // Set up live clock timer and simulated fetch completion
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Simulate loading
-    setTimeout(() => {
+    const loadTimer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(loadTimer);
+    };
   }, []);
 
+  /**
+   * Triggers stock adjustment dialog for inventory units.
+   * @param {Object} [item=null] - Blood group record.
+   */
   const handleUpdateStock = (item = null) => {
     console.log('Update stock for:', item);
-    // Handle stock update logic
   };
 
+  /**
+   * Opens detailed audit record for an inventory batch.
+   * @param {Object} item - Blood inventory row.
+   */
   const handleViewDetails = (item) => {
     console.log('View details for:', item);
-    // Handle view details logic
   };
 
+  /**
+   * Approves an urgent hospital blood requisition.
+   * @param {Object} request - Active request object.
+   */
   const handleApproveRequest = (request) => {
     console.log('Approve request:', request);
-    // Handle request approval logic
   };
 
+  /**
+   * Declines a requisition with reasoning.
+   * @param {Object} request - Active request object.
+   */
   const handleDeclineRequest = (request) => {
     console.log('Decline request:', request);
-    // Handle request decline logic
   };
 
+  /**
+   * Opens modal/page with complete patient request case details.
+   * @param {Object} request - Active request object.
+   */
   const handleViewRequest = (request) => {
     console.log('View request details:', request);
-    // Handle view request details logic
   };
 
+  /**
+   * Marks a specific notification as acknowledged.
+   * @param {number} notificationId - Notification identifier.
+   */
   const handleMarkAsRead = (notificationId) => {
     setNotifications(prev => 
       prev?.map(n => n?.id === notificationId ? { ...n, read: true } : n)
     );
   };
 
+  /**
+   * Marks all pending notifications as acknowledged.
+   */
   const handleMarkAllAsRead = () => {
     setNotifications(prev => prev?.map(n => ({ ...n, read: true })));
   };
 
+  /**
+   * Removes a notification from the list.
+   * @param {number} notificationId - Notification identifier.
+   */
   const handleDeleteNotification = (notificationId) => {
     setNotifications(prev => prev?.filter(n => n?.id !== notificationId));
   };
 
+  /**
+   * Triggers regional emergency broadcast protocol.
+   */
   const handleEmergencyAlert = () => {
     console.log('Emergency alert activated');
-    // Handle emergency alert logic
   };
 
+  /**
+   * Generates formatted PDF/CSV inventory summary for management.
+   */
   const handleGenerateReport = () => {
     console.log('Generate report');
-    // Handle report generation logic
   };
 
+  // Render initial loading spinner while data is being prepared
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -355,10 +410,12 @@ const BloodBankDashboard = () => {
         <title>Blood Bank Dashboard - BloodLink AI</title>
         <meta name="description" content="Comprehensive blood bank management dashboard for inventory tracking, request processing, and AI-powered demand forecasting." />
       </Helmet>
+      
       <Header />
+
       <main className="pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Dashboard Header */}
+          {/* Dashboard Header Bar */}
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -378,6 +435,8 @@ const BloodBankDashboard = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Action Buttons */}
               <div className="flex items-center space-x-3 mt-4 lg:mt-0">
                 <Button
                   variant="outline"
@@ -399,14 +458,14 @@ const BloodBankDashboard = () => {
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Quick High-Level Stats Cards */}
           <div className="mb-8">
             <QuickStatsCards stats={quickStats} />
           </div>
 
-          {/* View Toggle */}
+          {/* View Mode Navigation Tabs */}
           <div className="mb-6">
-            <div className="flex items-center space-x-1 bg-muted rounded-lg p-1">
+            <div className="flex items-center space-x-1 bg-muted rounded-lg p-1 overflow-x-auto">
               {[
                 { id: 'overview', label: 'Overview', icon: 'LayoutDashboard' },
                 { id: 'inventory', label: 'Inventory', icon: 'Package' },
@@ -417,7 +476,7 @@ const BloodBankDashboard = () => {
                 <button
                   key={view?.id}
                   onClick={() => setSelectedView(view?.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-medical ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-medical whitespace-nowrap ${
                     selectedView === view?.id
                       ? 'bg-card text-text-primary medical-shadow'
                       : 'text-text-secondary hover:text-text-primary'
@@ -430,8 +489,9 @@ const BloodBankDashboard = () => {
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Main Dashboard Views Content Area */}
           <div className="space-y-8">
+            {/* Overview Multi-column Composite View */}
             {selectedView === 'overview' && (
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <div className="xl:col-span-2 space-y-8">
@@ -462,6 +522,7 @@ const BloodBankDashboard = () => {
               </div>
             )}
 
+            {/* Individual Tab Views */}
             {selectedView === 'inventory' && (
               <InventoryTable
                 inventoryData={inventoryData}

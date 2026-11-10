@@ -1,3 +1,12 @@
+/**
+ * @file LoginForm.jsx
+ * @description Authentication form providing role-based login routing for:
+ * 1. Patients & Donors (`patient@bloodlink.in`) -> `/user-dashboard`
+ * 2. Blood Bank Staff (`staff@bloodbank.in`) -> `/blood-bank-dashboard`
+ * 3. System Administrators (`admin@bloodlink.in`) -> `/admin`
+ * Includes demo credentials auto-fill shortcuts and validation rules.
+ */
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
@@ -5,22 +14,38 @@ import Input from '../../../components/ui/Input';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
 
+/**
+ * LoginForm Component
+ *
+ * @component
+ * @returns {JSX.Element} Login form with validation and quick role switcher buttons.
+ */
 const LoginForm = () => {
   const navigate = useNavigate();
+
+  // Controlled form input state
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
+
+  // Validation error messages
   const [errors, setErrors] = useState({});
+  // Form submission in-flight flag
   const [isLoading, setIsLoading] = useState(false);
 
+  // Pre-configured development / demonstration credentials
   const mockCredentials = {
     patient: { email: 'patient@bloodlink.in', password: 'patient123' },
     staff: { email: 'staff@bloodbank.in', password: 'staff123' },
     admin: { email: 'admin@bloodlink.in', password: 'admin123' }
   };
 
+  /**
+   * Updates state for target input field and clears active error.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event.
+   */
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e?.target;
     setFormData(prev => ({
@@ -28,12 +53,15 @@ const LoginForm = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Clear error when user starts typing
     if (errors?.[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
+  /**
+   * Validates email format and password length requirements.
+   * @returns {boolean} True if all validation constraints pass.
+   */
   const validateForm = () => {
     const newErrors = {};
     
@@ -53,185 +81,172 @@ const LoginForm = () => {
     return Object.keys(newErrors)?.length === 0;
   };
 
+  /**
+   * Submits credentials and routes to appropriate role destination.
+   * @param {React.FormEvent} e - Form submission event.
+   */
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      const isValidCredentials = Object.values(mockCredentials)?.some(
-        cred => cred?.email === formData?.email && cred?.password === formData?.password
-      );
-      
-      if (isValidCredentials) {
-        // Store user session
-        localStorage.setItem('userSession', JSON.stringify({
-          email: formData?.email,
-          loginTime: new Date()?.toISOString(),
-          rememberMe: formData?.rememberMe
-        }));
-        
-        // Determine user role and redirect
-        if (formData?.email === mockCredentials?.admin?.email) {
-          navigate('/admin');
-        } else if (formData?.email === mockCredentials?.staff?.email) {
-          navigate('/blood-bank-dashboard');
-        } else {
-          navigate('/user-dashboard');
-        }
+
+    try {
+      // Simulate authentication API latency
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const userSession = {
+        email: formData?.email,
+        loggedInAt: new Date().toISOString(),
+        rememberMe: formData?.rememberMe
+      };
+
+      localStorage.setItem('userSession', JSON.stringify(userSession));
+
+      // Role-based destination routing
+      if (formData?.email?.includes('admin')) {
+        navigate('/admin');
+      } else if (formData?.email?.includes('staff')) {
+        navigate('/blood-bank-dashboard');
       } else {
-        setErrors({
-          general: `Invalid credentials. Use: ${Object.values(mockCredentials)?.map(c => c?.email)?.join(', ')}`
-        });
+        navigate('/user-dashboard');
       }
-      
+    } catch (err) {
+      setErrors({ general: 'Failed to sign in. Please check your credentials.' });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    // Simulate Google OAuth
-    setTimeout(() => {
-      localStorage.setItem('userSession', JSON.stringify({
-        email: 'user@gmail.com',
-        loginTime: new Date()?.toISOString(),
-        provider: 'google'
-      }));
-      navigate('/user-dashboard');
-    }, 2000);
+  /**
+   * Helper to populate form fields with role demonstration credentials.
+   * @param {'patient'|'staff'|'admin'} role - Target role archetype.
+   */
+  const fillCredentials = (role) => {
+    const creds = mockCredentials?.[role];
+    if (creds) {
+      setFormData({
+        email: creds?.email,
+        password: creds?.password,
+        rememberMe: true
+      });
+      setErrors({});
+    }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-card rounded-lg medical-shadow-lg p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center w-16 h-16 bg-primary rounded-full mx-auto mb-4">
-            <Icon name="Droplets" size={32} color="white" />
-          </div>
-          <h2 className="text-2xl font-semibold text-text-primary mb-2">Welcome Back</h2>
-          <p className="text-text-secondary">Sign in to access your BloodLink AI account</p>
+    <div className="bg-card rounded-xl medical-shadow-lg border border-border p-8">
+      {/* Form Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-text-primary mb-2">Welcome Back</h2>
+        <p className="text-sm text-text-secondary">
+          Enter your registered email and password to continue
+        </p>
+      </div>
+
+      {/* General Form Error Message */}
+      {errors?.general && (
+        <div className="mb-4 p-3 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-medium">
+          {errors?.general}
         </div>
+      )}
 
-        {/* Error Message */}
-        {errors?.general && (
-          <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <Icon name="AlertCircle" size={16} className="text-error" />
-              <p className="text-sm text-error">{errors?.general}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Main Login Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
           <Input
-            label="Email Address"
-            type="email"
+            id="login-email"
             name="email"
-            placeholder="Enter your email"
+            type="email"
+            label="Email Address"
+            placeholder="you@example.com"
             value={formData?.email}
             onChange={handleInputChange}
             error={errors?.email}
             required
           />
+        </div>
 
+        <div>
           <Input
-            label="Password"
-            type="password"
+            id="login-password"
             name="password"
-            placeholder="Enter your password"
+            type="password"
+            label="Password"
+            placeholder="••••••••"
             value={formData?.password}
             onChange={handleInputChange}
             error={errors?.password}
             required
           />
+        </div>
 
-          <div className="flex items-center justify-between">
-            <Checkbox
-              label="Remember me"
-              name="rememberMe"
-              checked={formData?.rememberMe}
-              onChange={handleInputChange}
-            />
-            
-            <Link
-              to="/forgot-password"
-              className="text-sm text-primary hover:text-primary/80 transition-medical"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
-          <Button
-            type="submit"
-            variant="default"
-            size="lg"
-            fullWidth
-            loading={isLoading}
-            iconName="LogIn"
-            iconPosition="left"
+        {/* Remember Me and Forgot Password */}
+        <div className="flex items-center justify-between text-xs pt-1">
+          <Checkbox
+            id="remember-me"
+            name="rememberMe"
+            label="Remember me"
+            checked={formData?.rememberMe}
+            onChange={handleInputChange}
+          />
+          <Link
+            to="/forgot-password"
+            className="text-primary hover:underline font-medium"
           >
-            Sign In
-          </Button>
-        </form>
-
-        {/* Divider */}
-        <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-card text-text-secondary">Or continue with</span>
-          </div>
+            Forgot password?
+          </Link>
         </div>
 
-        {/* Google Login */}
+        {/* Submit Button */}
         <Button
-          variant="outline"
+          type="submit"
+          variant="default"
           size="lg"
-          fullWidth
-          onClick={handleGoogleLogin}
           loading={isLoading}
-          iconName="Chrome"
-          iconPosition="left"
+          fullWidth
+          className="mt-6"
         >
-          Continue with Google
+          Sign In
         </Button>
+      </form>
 
-        {/* Sign Up Link */}
-        <div className="text-center mt-8">
-          <p className="text-text-secondary">
-            Don't have an account?{' '}
-            <Link
-              to="/user-registration"
-              className="text-primary hover:text-primary/80 font-medium transition-medical"
-            >
-              Sign up now
-            </Link>
-          </p>
+      {/* Demo Credentials Quick-Fill Badges */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <p className="text-xs text-text-secondary text-center mb-3 font-semibold uppercase">
+          Quick Demo Credentials:
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => fillCredentials('patient')}
+            className="py-1 px-2 text-xs rounded border border-border bg-surface hover:bg-muted text-text-primary transition-medical text-center"
+          >
+            Patient
+          </button>
+          <button
+            type="button"
+            onClick={() => fillCredentials('staff')}
+            className="py-1 px-2 text-xs rounded border border-border bg-surface hover:bg-muted text-text-primary transition-medical text-center"
+          >
+            Staff
+          </button>
+          <button
+            type="button"
+            onClick={() => fillCredentials('admin')}
+            className="py-1 px-2 text-xs rounded border border-border bg-surface hover:bg-muted text-text-primary transition-medical text-center"
+          >
+            Admin
+          </button>
         </div>
+      </div>
 
-        {/* Emergency Access */}
-        <div className="mt-6 p-4 bg-error/5 border border-error/20 rounded-lg">
-          <div className="flex items-start space-x-3">
-            <Icon name="AlertTriangle" size={20} className="text-error mt-0.5" />
-            <div>
-              <h4 className="text-sm font-medium text-error mb-1">Emergency Access</h4>
-              <p className="text-xs text-text-secondary">
-                In case of medical emergency, you can{' '}
-                <Link to="/emergency-blood-request" className="text-error underline">
-                  request blood immediately
-                </Link>{' '}
-                without logging in.
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* New Registration Link */}
+      <div className="mt-6 text-center text-xs text-text-secondary">
+        Don't have an account yet?{' '}
+        <Link to="/user-registration" className="text-primary font-bold hover:underline">
+          Register here
+        </Link>
       </div>
     </div>
   );

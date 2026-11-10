@@ -1,11 +1,36 @@
+/**
+ * @file ActiveRequestsPanel.jsx
+ * @description Patient and hospital emergency blood request queue.
+ * Enables laboratory staff to sort, filter by urgency (Critical, Urgent, Normal),
+ * view patient notes, and trigger immediate Approve/Decline dispatch actions.
+ */
+
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
+/**
+ * ActiveRequestsPanel Component
+ *
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {Array<Object>} props.requests - List of active blood requests.
+ * @param {(req: Object) => void} props.onApproveRequest - Approve callback.
+ * @param {(req: Object) => void} props.onDeclineRequest - Decline callback.
+ * @param {(req: Object) => void} props.onViewRequest - Detailed inspection modal callback.
+ * @returns {JSX.Element} Interactive request triage panel.
+ */
 const ActiveRequestsPanel = ({ requests, onApproveRequest, onDeclineRequest, onViewRequest }) => {
+  // Urgency filter state ('all' | 'critical' | 'urgent' | 'normal')
   const [filter, setFilter] = useState('all');
+  // Sorting criterion ('urgency' | 'time')
   const [sortBy, setSortBy] = useState('urgency');
 
+  /**
+   * Resolves visual urgency badges.
+   * @param {string} urgency - Urgency rating.
+   * @returns {string} Tailwind CSS styling classes.
+   */
   const getUrgencyColor = (urgency) => {
     switch (urgency?.toLowerCase()) {
       case 'critical':
@@ -19,17 +44,24 @@ const ActiveRequestsPanel = ({ requests, onApproveRequest, onDeclineRequest, onV
     }
   };
 
+  /**
+   * Colorizes elapsed time based on minutes waiting.
+   * @param {number} minutes - Elapsed time in minutes.
+   * @returns {string} Text color class.
+   */
   const getTimeAgoColor = (minutes) => {
     if (minutes <= 15) return 'text-error';
     if (minutes <= 60) return 'text-warning';
     return 'text-text-secondary';
   };
 
+  // Filter requests according to selected urgency filter
   const filteredRequests = requests?.filter(request => {
     if (filter === 'all') return true;
     return request?.urgency?.toLowerCase() === filter;
   });
 
+  // Sort requests by urgency rank or timestamp
   const sortedRequests = [...filteredRequests]?.sort((a, b) => {
     if (sortBy === 'urgency') {
       const urgencyOrder = { 'critical': 0, 'urgent': 1, 'normal': 2 };
@@ -43,6 +75,7 @@ const ActiveRequestsPanel = ({ requests, onApproveRequest, onDeclineRequest, onV
 
   return (
     <div className="bg-card rounded-lg border border-border medical-shadow">
+      {/* Panel Header with Filter & Sort Controls */}
       <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -52,7 +85,9 @@ const ActiveRequestsPanel = ({ requests, onApproveRequest, onDeclineRequest, onV
               {requests?.length}
             </span>
           </div>
+
           <div className="flex items-center space-x-2">
+            {/* Filter by Urgency */}
             <select
               value={filter}
               onChange={(e) => setFilter(e?.target?.value)}
@@ -63,6 +98,8 @@ const ActiveRequestsPanel = ({ requests, onApproveRequest, onDeclineRequest, onV
               <option value="urgent">Urgent</option>
               <option value="normal">Normal</option>
             </select>
+
+            {/* Sort Order Selector */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e?.target?.value)}
@@ -74,107 +111,86 @@ const ActiveRequestsPanel = ({ requests, onApproveRequest, onDeclineRequest, onV
           </div>
         </div>
       </div>
-      <div className="max-h-96 overflow-y-auto">
+
+      {/* Requests List */}
+      <div className="divide-y divide-border max-h-[600px] overflow-y-auto">
         {sortedRequests?.length === 0 ? (
-          <div className="px-6 py-8 text-center">
-            <Icon name="Inbox" size={48} className="mx-auto text-text-secondary mb-4" />
-            <p className="text-text-secondary">No active requests found</p>
+          <div className="p-8 text-center text-text-secondary">
+            <Icon name="Inbox" size={36} className="mx-auto mb-2 opacity-40" />
+            <p className="text-sm">No active requests matching filter.</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {sortedRequests?.map((request) => (
-              <div key={request?.id} className="px-6 py-4 hover:bg-muted/30 transition-medical">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getUrgencyColor(request?.urgency)}`}>
-                        {request?.urgency}
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <Icon name="Droplets" size={16} className="text-primary" />
-                        <span className="text-sm font-medium text-text-primary">{request?.bloodGroup}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Icon name="Package" size={14} className="text-text-secondary" />
-                        <span className="text-sm text-text-secondary">{request?.quantity} units</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <Icon name="User" size={14} className="text-text-secondary" />
-                        <span className="text-sm text-text-primary">{request?.patientName}</span>
-                        <span className="text-xs text-text-secondary">• Age {request?.patientAge}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Icon name="Building2" size={14} className="text-text-secondary" />
-                        <span className="text-sm text-text-secondary">{request?.hospital}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Icon name="Phone" size={14} className="text-text-secondary" />
-                        <span className="text-sm text-text-secondary">{request?.contactNumber}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-1">
-                          <Icon name="Clock" size={14} className={getTimeAgoColor(request?.timeAgoMinutes)} />
-                          <span className={`text-xs ${getTimeAgoColor(request?.timeAgoMinutes)}`}>
-                            {request?.timeAgo}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Icon name="MapPin" size={14} className="text-text-secondary" />
-                          <span className="text-xs text-text-secondary">{request?.distance}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {request?.notes && (
-                      <div className="mt-2 p-2 bg-muted rounded text-xs text-text-secondary">
-                        <Icon name="FileText" size={12} className="inline mr-1" />
-                        {request?.notes}
-                      </div>
-                    )}
+          sortedRequests?.map((request) => (
+            <div key={request?.id} className="p-6 hover:bg-muted/50 transition-medical">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  {/* Top line: Patient name, age, blood type badge, and urgency level */}
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h4 className="font-semibold text-text-primary">{request?.patientName}</h4>
+                    <span className="text-sm text-text-secondary">({request?.patientAge} yrs)</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-primary text-primary-foreground">
+                      {request?.bloodGroup}
+                    </span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getUrgencyColor(request?.urgency)}`}>
+                      {request?.urgency}
+                    </span>
                   </div>
 
-                  <div className="flex flex-col space-y-2 ml-4">
-                    <Button
-                      variant="success"
-                      size="sm"
-                      iconName="Check"
-                      iconPosition="left"
-                      onClick={() => onApproveRequest(request)}
-                      className="min-w-[100px]"
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      iconName="X"
-                      iconPosition="left"
-                      onClick={() => onDeclineRequest(request)}
-                      className="min-w-[100px]"
-                    >
-                      Decline
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      iconName="Eye"
-                      iconPosition="left"
-                      onClick={() => onViewRequest(request)}
-                      className="min-w-[100px]"
-                    >
-                      Details
-                    </Button>
+                  {/* Metadata: Hospital name, distance, and elapsed submission time */}
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary mb-3">
+                    <span className="flex items-center gap-1">
+                      <Icon name="Building2" size={14} />
+                      {request?.hospital}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Icon name="MapPin" size={14} />
+                      {request?.distance}
+                    </span>
+                    <span className={`flex items-center gap-1 ${getTimeAgoColor(request?.timeAgoMinutes)} font-medium`}>
+                      <Icon name="Clock" size={14} />
+                      {request?.timeAgo}
+                    </span>
+                    <span className="font-semibold text-text-primary">
+                      Units: {request?.quantity}
+                    </span>
                   </div>
+
+                  {/* Clinical request notes if provided */}
+                  {request?.notes && (
+                    <p className="text-xs text-text-secondary bg-surface p-2 rounded border border-border mb-3">
+                      {request?.notes}
+                    </p>
+                  )}
+                </div>
+
+                {/* Direct Action Buttons: View, Approve, Decline */}
+                <div className="flex flex-col gap-2 ml-4">
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() => onViewRequest?.(request)}
+                  >
+                    Details
+                  </Button>
+                  <Button
+                    variant="success"
+                    size="xs"
+                    onClick={() => onApproveRequest?.(request)}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="text-error hover:bg-error/10"
+                    onClick={() => onDeclineRequest?.(request)}
+                  >
+                    Decline
+                  </Button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
       </div>
     </div>

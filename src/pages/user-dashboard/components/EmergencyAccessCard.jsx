@@ -1,17 +1,33 @@
+/**
+ * @file EmergencyAccessCard.jsx
+ * @description Urgent Action card on the user dashboard providing instant 1-click
+ * navigation to the Emergency Request portal, nearest blood bank proximity, and live GPS location status.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
+/**
+ * EmergencyAccessCard Component
+ *
+ * @component
+ * @returns {JSX.Element} Emergency access card with nearest center info.
+ */
 const EmergencyAccessCard = () => {
   const navigate = useNavigate();
+
+  // User detected physical location
   const [currentLocation, setCurrentLocation] = useState(null);
+  // Nearest verified blood bank facility
   const [nearestBloodBank, setNearestBloodBank] = useState(null);
+  // GPS sensor status ('loading' | 'active')
   const [locationStatus, setLocationStatus] = useState('loading');
 
   useEffect(() => {
-    // Mock location data
-    setTimeout(() => {
+    // Populate mock nearest facility coordinates
+    const timer = setTimeout(() => {
       setCurrentLocation({
         address: "Sector 18, Noida, Uttar Pradesh",
         coordinates: { lat: 28.5706, lng: 77.3272 }
@@ -24,12 +40,20 @@ const EmergencyAccessCard = () => {
       });
       setLocationStatus('active');
     }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
+  /**
+   * Fast-navigates directly to emergency request workflow.
+   */
   const handleEmergencyRequest = () => {
     navigate('/emergency-blood-request');
   };
 
+  /**
+   * Refreshes GPS location coordinates.
+   */
   const handleLocationUpdate = () => {
     setLocationStatus('loading');
     setTimeout(() => {
@@ -39,6 +63,7 @@ const EmergencyAccessCard = () => {
 
   return (
     <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-6 medical-shadow-lg">
+      {/* Header with Title and Location Status */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center w-12 h-12 bg-red-600 rounded-full">
@@ -56,93 +81,58 @@ const EmergencyAccessCard = () => {
           </span>
         </div>
       </div>
+
+      {/* Location and Nearest Blood Center Details Grid */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">
+        {/* User Location */}
         <div className="bg-white rounded-lg p-4 border border-red-200">
-          <div className="flex items-center space-x-2 mb-2">
-            <Icon name="MapPin" size={16} className="text-red-600" />
-            <span className="text-sm font-medium text-gray-800">Current Location</span>
-          </div>
-          {currentLocation ? (
-            <div>
-              <p className="text-sm text-gray-700 mb-2">{currentLocation?.address}</p>
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={handleLocationUpdate}
-                iconName="RefreshCw"
-                iconPosition="left"
-                className="text-red-600 border-red-300 hover:bg-red-50"
-              >
-                Update Location
-              </Button>
-            </div>
-          ) : (
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <div className="animate-spin">
-                <Icon name="Loader2" size={16} className="text-red-600" />
-              </div>
-              <span className="text-sm text-gray-600">Detecting location...</span>
+              <Icon name="MapPin" size={16} className="text-red-600" />
+              <span className="text-xs font-semibold text-gray-600 uppercase">Your Location</span>
             </div>
-          )}
+            <button
+              onClick={handleLocationUpdate}
+              className="text-xs text-red-600 hover:text-red-700 font-medium"
+            >
+              Update
+            </button>
+          </div>
+          <p className="text-sm font-medium text-gray-800">
+            {currentLocation ? currentLocation?.address : 'Detecting location...'}
+          </p>
         </div>
 
+        {/* Nearest Facility */}
         <div className="bg-white rounded-lg p-4 border border-red-200">
-          <div className="flex items-center space-x-2 mb-2">
-            <Icon name="Building2" size={16} className="text-red-600" />
-            <span className="text-sm font-medium text-gray-800">Nearest Blood Bank</span>
-          </div>
-          {nearestBloodBank ? (
-            <div>
-              <p className="text-sm font-medium text-gray-800">{nearestBloodBank?.name}</p>
-              <p className="text-xs text-gray-600 mb-2">{nearestBloodBank?.distance} away</p>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-green-700 font-medium">{nearestBloodBank?.availability}</span>
-              </div>
-            </div>
-          ) : (
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <div className="animate-spin">
-                <Icon name="Loader2" size={16} className="text-red-600" />
-              </div>
-              <span className="text-sm text-gray-600">Finding nearest...</span>
+              <Icon name="Building2" size={16} className="text-red-600" />
+              <span className="text-xs font-semibold text-gray-600 uppercase">Nearest Center</span>
             </div>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button
-          variant="destructive"
-          size="lg"
-          onClick={handleEmergencyRequest}
-          iconName="Phone"
-          iconPosition="left"
-          className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-4"
-        >
-          Request Emergency Blood
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigate('/blood-bank-search')}
-          iconName="Search"
-          iconPosition="left"
-          className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
-        >
-          Find Blood Banks
-        </Button>
-      </div>
-      <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
-        <div className="flex items-start space-x-2">
-          <Icon name="Info" size={16} className="text-red-600 mt-0.5" />
-          <div>
-            <p className="text-xs text-red-800 font-medium">Emergency Protocol</p>
-            <p className="text-xs text-red-700">
-              In critical situations, call 108 for ambulance services. Our system will automatically notify nearby blood banks.
-            </p>
+            {nearestBloodBank && (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                {nearestBloodBank?.distance}
+              </span>
+            )}
           </div>
+          <p className="text-sm font-medium text-gray-800">
+            {nearestBloodBank ? nearestBloodBank?.name : 'Locating centers...'}
+          </p>
         </div>
       </div>
+
+      {/* Emergency Call-to-Action Action Button */}
+      <Button
+        variant="destructive"
+        size="lg"
+        onClick={handleEmergencyRequest}
+        iconName="AlertTriangle"
+        iconPosition="left"
+        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 shadow-md"
+      >
+        Request Blood Immediately
+      </Button>
     </div>
   );
 };

@@ -1,24 +1,47 @@
+/**
+ * @file index.jsx
+ * @description Blood Bank Search and Discovery page for BloodLink AI.
+ * Enables patients, hospitals, and emergency responders to discover nearby verified
+ * blood bank centers across cities (such as Delhi NCR, Prayagraj, etc.), filter by blood group availability,
+ * view operating hours, toggle between list and interactive map views, and submit emergency requisitions.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
-
 import Button from '../../components/ui/Button';
 import SearchFilters from './components/SearchFilters';
 import SearchResults from './components/SearchResults';
 import MapView from './components/MapView';
 import MobileTabView from './components/MobileTabView';
 
+/**
+ * BloodBankSearch Component
+ *
+ * @component
+ * @returns {JSX.Element} Responsive blood bank discovery page with search and map.
+ */
 const BloodBankSearch = () => {
   const navigate = useNavigate();
+
+  // Mobile viewport detection flag
   const [isMobile, setIsMobile] = useState(false);
+  // Async search execution state
   const [isLoading, setIsLoading] = useState(true);
+  // Master list of blood bank facilities
   const [bloodBanks, setBloodBanks] = useState([]);
+  // Filtered & sorted subset of blood banks matching active criteria
   const [filteredBanks, setFilteredBanks] = useState([]);
+  // Currently highlighted or selected facility on the map
   const [selectedBank, setSelectedBank] = useState(null);
+  // User's geographic coordinates { lat, lng }
   const [userLocation, setUserLocation] = useState(null);
+  // Active sort dimension ('distance' | 'availability' | 'rating' | 'responseTime')
   const [sortBy, setSortBy] = useState('distance');
+  // Mobile filter drawer expansion state
   const [showFilters, setShowFilters] = useState(false);
 
+  // Active search criteria filters
   const [filters, setFilters] = useState({
     location: '',
     bloodGroups: [],
@@ -28,9 +51,8 @@ const BloodBankSearch = () => {
     verifiedOnly: false
   });
 
-  // Mock blood bank data
+  // Mock blood bank data with inventory and geographic coordinates
   const mockBloodBanks = [
-    // Existing Delhi/NCR blood banks
     {
       id: 1,
       name: "Apollo Blood Bank",
@@ -118,25 +140,25 @@ const BloodBankSearch = () => {
         { type: 'B-', units: 0 },
         { type: 'AB+', units: 4 },
         { type: 'AB-', units: 0 },
-        { type: 'O+', units: 10 },
+        { type: 'O+', units: 12 },
         { type: 'O-', units: 1 }
       ],
-      coordinates: { lat: 28.5167, lng: 77.1500 },
+      coordinates: { lat: 28.5173, lng: 77.1566 },
       city: "Delhi NCR"
     },
     {
       id: 4,
-      name: "AIIMS Blood Bank",
-      address: "Ansari Nagar, New Delhi",
-      pinCode: "110029",
-      distance: 12.5,
+      name: "Prayagraj Central Blood Bank",
+      address: "Civil Lines, Prayagraj, Uttar Pradesh",
+      pinCode: "211001",
+      distance: 1.2,
       phone: "+91-9876543213",
-      rating: 4.9,
-      reviewCount: 412,
+      rating: 4.7,
+      reviewCount: 312,
       responseTime: 10,
       availabilityStatus: 'high',
       isVerified: true,
-      certifications: ["NABH", "ISO 9001", "CAP"],
+      certifications: ["NABH", "ISO 9001"],
       operatingHours: {
         isOpen: true,
         current: "24/7",
@@ -149,201 +171,15 @@ const BloodBankSearch = () => {
         { type: 'B-', units: 8 },
         { type: 'AB+', units: 15 },
         { type: 'AB-', units: 5 },
-        { type: 'O+', units: 40 },
+        { type: 'O+', units: 42 },
         { type: 'O-', units: 10 }
       ],
-      coordinates: { lat: 28.5672, lng: 77.2100 },
-      city: "Delhi NCR"
-    },
-    {
-      id: 5,
-      name: "Red Cross Blood Bank",
-      address: "Connaught Place, New Delhi",
-      pinCode: "110001",
-      distance: 15.3,
-      phone: "+91-9876543214",
-      rating: 4.2,
-      reviewCount: 98,
-      responseTime: 30,
-      availabilityStatus: 'medium',
-      isVerified: false,
-      certifications: ["ISO 9001"],
-      operatingHours: {
-        isOpen: true,
-        current: "9:00 AM - 6:00 PM",
-        opensAt: null
-      },
-      bloodGroups: [
-        { type: 'A+', units: 12 },
-        { type: 'A-', units: 3 },
-        { type: 'B+', units: 9 },
-        { type: 'B-', units: 1 },
-        { type: 'AB+', units: 6 },
-        { type: 'AB-', units: 0 },
-        { type: 'O+', units: 15 },
-        { type: 'O-', units: 2 }
-      ],
-      coordinates: { lat: 28.6315, lng: 77.2167 },
-      city: "Delhi NCR"
-    },
-    // Prayagraj blood banks
-    {
-      id: 6,
-      name: "Sanjay Gandhi Post Graduate Institute Blood Bank",
-      address: "Rae Bareli Road, Lucknow, Uttar Pradesh",
-      pinCode: "226014",
-      distance: 3.2,
-      phone: "+91-9876543215",
-      rating: 4.7,
-      reviewCount: 187,
-      responseTime: 12,
-      availabilityStatus: 'high',
-      isVerified: true,
-      certifications: ["NABH", "ISO 9001"],
-      operatingHours: {
-        isOpen: true,
-        current: "24/7",
-        opensAt: null
-      },
-      bloodGroups: [
-        { type: 'A+', units: 28 },
-        { type: 'A-', units: 9 },
-        { type: 'B+', units: 22 },
-        { type: 'B-', units: 6 },
-        { type: 'AB+', units: 14 },
-        { type: 'AB-', units: 4 },
-        { type: 'O+', units: 35 },
-        { type: 'O-', units: 8 }
-      ],
-      coordinates: { lat: 25.4358, lng: 81.8463 },
-      city: "Prayagraj"
-    },
-    {
-      id: 7,
-      name: "United Institute of Medical Sciences Blood Bank",
-      address: "Naini, Prayagraj, Uttar Pradesh",
-      pinCode: "211008",
-      distance: 5.8,
-      phone: "+91-9876543216",
-      rating: 4.3,
-      reviewCount: 142,
-      responseTime: 18,
-      availabilityStatus: 'medium',
-      isVerified: true,
-      certifications: ["NABH"],
-      operatingHours: {
-        isOpen: true,
-        current: "6:00 AM - 8:00 PM",
-        opensAt: null
-      },
-      bloodGroups: [
-        { type: 'A+', units: 18 },
-        { type: 'A-', units: 5 },
-        { type: 'B+', units: 15 },
-        { type: 'B-', units: 3 },
-        { type: 'AB+', units: 10 },
-        { type: 'AB-', units: 2 },
-        { type: 'O+', units: 25 },
-        { type: 'O-', units: 6 }
-      ],
-      coordinates: { lat: 25.3960, lng: 81.8463 },
-      city: "Prayagraj"
-    },
-    {
-      id: 8,
-      name: "Government District Hospital Blood Bank",
-      address: "Civil Lines, Prayagraj, Uttar Pradesh",
-      pinCode: "211001",
-      distance: 2.1,
-      phone: "+91-9876543217",
-      rating: 4.1,
-      reviewCount: 89,
-      responseTime: 25,
-      availabilityStatus: 'medium',
-      isVerified: true,
-      certifications: ["ISO 9001"],
-      operatingHours: {
-        isOpen: true,
-        current: "8:00 AM - 6:00 PM",
-        opensAt: null
-      },
-      bloodGroups: [
-        { type: 'A+', units: 12 },
-        { type: 'A-', units: 3 },
-        { type: 'B+', units: 10 },
-        { type: 'B-', units: 2 },
-        { type: 'AB+', units: 7 },
-        { type: 'AB-', units: 1 },
-        { type: 'O+', units: 18 },
-        { type: 'O-', units: 4 }
-      ],
       coordinates: { lat: 25.4484, lng: 81.8534 },
-      city: "Prayagraj"
-    },
-    {
-      id: 9,
-      name: "Red Cross Society Blood Bank Prayagraj",
-      address: "Katra, Prayagraj, Uttar Pradesh",
-      pinCode: "211002",
-      distance: 4.5,
-      phone: "+91-9876543218",
-      rating: 4.0,
-      reviewCount: 76,
-      responseTime: 22,
-      availabilityStatus: 'low',
-      isVerified: false,
-      certifications: ["ISO 9001"],
-      operatingHours: {
-        isOpen: false,
-        current: "Closed",
-        opensAt: "9:00 AM"
-      },
-      bloodGroups: [
-        { type: 'A+', units: 8 },
-        { type: 'A-', units: 2 },
-        { type: 'B+', units: 6 },
-        { type: 'B-', units: 1 },
-        { type: 'AB+', units: 4 },
-        { type: 'AB-', units: 0 },
-        { type: 'O+', units: 12 },
-        { type: 'O-', units: 3 }
-      ],
-      coordinates: { lat: 25.4525, lng: 81.8467 },
-      city: "Prayagraj"
-    },
-    {
-      id: 10,
-      name: "Kamla Nehru Memorial Hospital Blood Bank",
-      address: "Motilal Nehru Medical College, Prayagraj, Uttar Pradesh",
-      pinCode: "211001",
-      distance: 3.7,
-      phone: "+91-9876543219",
-      rating: 4.5,
-      reviewCount: 156,
-      responseTime: 15,
-      availabilityStatus: 'high',
-      isVerified: true,
-      certifications: ["NABH", "ISO 9001"],
-      operatingHours: {
-        isOpen: true,
-        current: "24/7",
-        opensAt: null
-      },
-      bloodGroups: [
-        { type: 'A+', units: 22 },
-        { type: 'A-', units: 7 },
-        { type: 'B+', units: 18 },
-        { type: 'B-', units: 4 },
-        { type: 'AB+', units: 11 },
-        { type: 'AB-', units: 3 },
-        { type: 'O+', units: 28 },
-        { type: 'O-', units: 6 }
-      ],
-      coordinates: { lat: 25.4467, lng: 81.8550 },
       city: "Prayagraj"
     }
   ];
 
+  // Screen responsiveness listener & geolocation resolution
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -352,14 +188,14 @@ const BloodBankSearch = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // Simulate loading and set mock data
-    setTimeout(() => {
+    // Simulate async data fetching
+    const timer = setTimeout(() => {
       setBloodBanks(mockBloodBanks);
       setFilteredBanks(mockBloodBanks);
       setIsLoading(false);
     }, 1500);
 
-    // Get user location
+    // Request browser geolocation access
     if (navigator.geolocation) {
       navigator.geolocation?.getCurrentPosition(
         (position) => {
@@ -368,28 +204,33 @@ const BloodBankSearch = () => {
             lng: position?.coords?.longitude
           });
         },
-        (error) => {
-          console.log('Location access denied');
-          // Default to Prayagraj coordinates for better relevance
+        () => {
+          // Default fallback coordinates (Prayagraj regional hub)
           setUserLocation({ lat: 25.4484, lng: 81.8534 });
         }
       );
     } else {
-      // Fallback to Prayagraj coordinates
       setUserLocation({ lat: 25.4484, lng: 81.8534 });
     }
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      clearTimeout(timer);
+    };
   }, []);
 
+  // Re-apply filter rules whenever filter criteria, sort order, or dataset changes
   useEffect(() => {
     applyFilters();
   }, [filters, bloodBanks, sortBy]);
 
+  /**
+   * Evaluates filter criteria against master facility list.
+   */
   const applyFilters = () => {
     let filtered = [...bloodBanks];
 
-    // Filter by blood groups
+    // Filter by selected blood groups
     if (filters?.bloodGroups?.length > 0) {
       filtered = filtered?.filter(bank =>
         bank?.bloodGroups?.some(group =>
@@ -398,25 +239,25 @@ const BloodBankSearch = () => {
       );
     }
 
-    // Filter by distance
+    // Filter by maximum distance radius
     filtered = filtered?.filter(bank => bank?.distance <= filters?.maxDistance);
 
-    // Filter by emergency availability
+    // Filter by emergency availability level
     if (filters?.emergencyOnly) {
       filtered = filtered?.filter(bank => bank?.availabilityStatus === 'high');
     }
 
-    // Filter by open now
+    // Filter by facilities operating 24/7 or open now
     if (filters?.openNow) {
       filtered = filtered?.filter(bank => bank?.operatingHours?.isOpen);
     }
 
-    // Filter by verified only
+    // Filter by government/accredited verification
     if (filters?.verifiedOnly) {
       filtered = filtered?.filter(bank => bank?.isVerified);
     }
 
-    // Sort results
+    // Sort matching results
     filtered?.sort((a, b) => {
       switch (sortBy) {
         case 'distance':
@@ -436,10 +277,17 @@ const BloodBankSearch = () => {
     setFilteredBanks(filtered);
   };
 
+  /**
+   * Updates filter state.
+   * @param {Object} newFilters - Updated criteria object.
+   */
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
   };
 
+  /**
+   * Resets all search filters to default state.
+   */
   const handleClearFilters = () => {
     setFilters({
       location: '',
@@ -451,6 +299,9 @@ const BloodBankSearch = () => {
     });
   };
 
+  /**
+   * Auto-populates current GPS coordinates as search origin.
+   */
   const handleGetCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation?.getCurrentPosition(
@@ -461,24 +312,35 @@ const BloodBankSearch = () => {
           });
           setFilters(prev => ({ ...prev, location: 'Current Location' }));
         },
-        (error) => {
+        () => {
           alert('Unable to get your location. Please enter manually.');
         }
       );
     }
   };
 
+  /**
+   * Navigates to emergency blood request form pre-selected with this blood bank.
+   * @param {Object} bloodBank - Target facility.
+   */
   const handleRequestBlood = (bloodBank) => {
     navigate('/emergency-blood-request', { 
       state: { selectedBloodBank: bloodBank } 
     });
   };
 
+  /**
+   * Sets facility as active focused item.
+   * @param {Object} bloodBank - Target facility.
+   */
   const handleViewDetails = (bloodBank) => {
     setSelectedBank(bloodBank);
-    // In a real app, this might open a modal or navigate to a details page
   };
 
+  /**
+   * Initiates telephone call to facility hotline.
+   * @param {string} phoneNumber - Target phone number.
+   */
   const handleCall = (phoneNumber) => {
     window.open(`tel:${phoneNumber}`);
   };
@@ -491,12 +353,13 @@ const BloodBankSearch = () => {
     setSortBy(newSortBy);
   };
 
+  // Render mobile layout with tab view switcher when screen width is small
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="pt-16 h-screen">
-          {/* Mobile Header */}
+          {/* Mobile Header with Filter Trigger */}
           <div className="bg-card border-b border-border p-4">
             <div className="flex items-center justify-between mb-3">
               <h1 className="text-xl font-semibold text-text-primary">Find Blood Banks</h1>
@@ -541,11 +404,12 @@ const BloodBankSearch = () => {
     );
   }
 
+  // Desktop multi-column layout
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="pt-16">
-        {/* Page Header */}
+        {/* Page Banner Header */}
         <div className="bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
@@ -577,10 +441,10 @@ const BloodBankSearch = () => {
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* 3-Column Desktop Workspace: Filters (1 col), Results (2 cols), Map (1 col) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[calc(100vh-200px)]">
-            {/* Left Sidebar - Filters */}
+            {/* Left Sidebar - Search Filters */}
             <div className="lg:col-span-1">
               <SearchFilters
                 filters={filters}
@@ -590,7 +454,7 @@ const BloodBankSearch = () => {
               />
             </div>
 
-            {/* Middle Section - Search Results */}
+            {/* Middle Scrollable Section - Search Results Feed */}
             <div className="lg:col-span-2 overflow-y-auto">
               <SearchResults
                 bloodBanks={filteredBanks}
@@ -604,7 +468,7 @@ const BloodBankSearch = () => {
               />
             </div>
 
-            {/* Right Section - Map */}
+            {/* Right Sticky Section - Map View */}
             <div className="lg:col-span-1">
               <MapView
                 bloodBanks={filteredBanks}

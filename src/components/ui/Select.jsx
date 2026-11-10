@@ -1,10 +1,41 @@
-// components/ui/Select.jsx - Shadcn style Select
+/**
+ * @file Select.jsx
+ * @description Accessible custom Dropdown Select component following Shadcn/Radix design patterns.
+ * Supports single-select, multi-select, searchable filtering, clearable values, loading indicators,
+ * and hidden native <select> elements for automated form serializations.
+ */
+
 import React, { useState } from "react";
 import { ChevronDown, Check, Search, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "./Button";
 import Input from "./Input";
 
+/**
+ * Select Component
+ *
+ * @component
+ * @param {Object} props - Select properties.
+ * @param {string} [props.className] - Wrapper CSS classes.
+ * @param {Array<{ label: string, value: string|number, disabled?: boolean, description?: string }>} [props.options=[]] - List of selectable options.
+ * @param {string|number|Array<string|number>} [props.value] - Currently selected value(s).
+ * @param {string} [props.placeholder="Select an option"] - Placeholder text when empty.
+ * @param {boolean} [props.multiple=false] - Allows selecting multiple items.
+ * @param {boolean} [props.disabled=false] - Prevents opening or choosing items.
+ * @param {boolean} [props.required=false] - Denotes mandatory form field.
+ * @param {string} [props.label] - Field label above select.
+ * @param {string} [props.description] - Helper text below select.
+ * @param {string} [props.error] - Validation error message.
+ * @param {boolean} [props.searchable=false] - Enables real-time option filtering input.
+ * @param {boolean} [props.clearable=false] - Displays clear 'X' button when a selection exists.
+ * @param {boolean} [props.loading=false] - Displays spinner inside toggle button.
+ * @param {string} [props.id] - Element ID.
+ * @param {string} [props.name] - Native form input name.
+ * @param {(value: any) => void} [props.onChange] - Selection change callback.
+ * @param {(isOpen: boolean) => void} [props.onOpenChange] - Dropdown open/close state change callback.
+ * @param {React.Ref<HTMLButtonElement>} ref - Forwarded DOM button ref.
+ * @returns {JSX.Element} Rendered custom select dropdown.
+ */
 const Select = React.forwardRef(({
     className,
     options = [],
@@ -26,13 +57,15 @@ const Select = React.forwardRef(({
     onOpenChange,
     ...props
 }, ref) => {
+    // Dropdown open/closed status
     const [isOpen, setIsOpen] = useState(false);
+    // Real-time search query for filtering options
     const [searchTerm, setSearchTerm] = useState("");
 
     // Generate unique ID if not provided
     const selectId = id || `select-${Math.random()?.toString(36)?.substr(2, 9)}`;
 
-    // Filter options based on search
+    // Filter options based on search query
     const filteredOptions = searchable && searchTerm
         ? options?.filter(option =>
             option?.label?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
@@ -40,7 +73,7 @@ const Select = React.forwardRef(({
         )
         : options;
 
-    // Get selected option(s) for display
+    // Resolve human-readable text for current selection
     const getSelectedDisplay = () => {
         if (!value) return placeholder;
 
@@ -55,6 +88,7 @@ const Select = React.forwardRef(({
         return selectedOption ? selectedOption?.label : placeholder;
     };
 
+    // Toggle menu visibility
     const handleToggle = () => {
         if (!disabled) {
             const newIsOpen = !isOpen;
@@ -66,6 +100,7 @@ const Select = React.forwardRef(({
         }
     };
 
+    // Handle user clicking an individual option item
     const handleOptionSelect = (option) => {
         if (multiple) {
             const newValue = value || [];
@@ -80,15 +115,18 @@ const Select = React.forwardRef(({
         }
     };
 
+    // Clear all selected items
     const handleClear = (e) => {
         e?.stopPropagation();
         onChange?.(multiple ? [] : '');
     };
 
+    // Update query text
     const handleSearchChange = (e) => {
         setSearchTerm(e?.target?.value);
     };
 
+    // Helper checking if a given option is currently active
     const isSelected = (optionValue) => {
         if (multiple) {
             return value?.includes(optionValue) || false;
@@ -100,6 +138,7 @@ const Select = React.forwardRef(({
 
     return (
         <div className={cn("relative", className)}>
+            {/* Field Label */}
             {label && (
                 <label
                     htmlFor={selectId}
@@ -112,7 +151,9 @@ const Select = React.forwardRef(({
                     {required && <span className="text-destructive ml-1">*</span>}
                 </label>
             )}
+
             <div className="relative">
+                {/* Main Select Trigger Button */}
                 <button
                     ref={ref}
                     id={selectId}
@@ -131,6 +172,7 @@ const Select = React.forwardRef(({
                     <span className="truncate">{getSelectedDisplay()}</span>
 
                     <div className="flex items-center gap-1">
+                        {/* Loading Spinner */}
                         {loading && (
                             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -138,6 +180,7 @@ const Select = React.forwardRef(({
                             </svg>
                         )}
 
+                        {/* Clear Selection Button */}
                         {clearable && hasValue && !loading && (
                             <Button
                                 variant="ghost"
@@ -149,15 +192,16 @@ const Select = React.forwardRef(({
                             </Button>
                         )}
 
+                        {/* Dropdown Caret Icon */}
                         <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
                     </div>
                 </button>
 
-                {/* Hidden native select for form submission */}
+                {/* Hidden native select for standard HTML form submission compatibility */}
                 <select
                     name={name}
                     value={value || ''}
-                    onChange={() => { }} // Controlled by our custom logic
+                    onChange={() => { }} // Controlled by custom component state
                     className="sr-only"
                     tabIndex={-1}
                     multiple={multiple}
@@ -171,9 +215,10 @@ const Select = React.forwardRef(({
                     ))}
                 </select>
 
-                {/* Dropdown */}
+                {/* Dropdown Menu Overlay */}
                 {isOpen && (
                     <div className="absolute z-50 w-full mt-1 bg-white text-black border border-border rounded-md shadow-md">
+                        {/* Search Input Filter */}
                         {searchable && (
                             <div className="p-2 border-b">
                                 <div className="relative">
@@ -188,6 +233,7 @@ const Select = React.forwardRef(({
                             </div>
                         )}
 
+                        {/* Options List */}
                         <div className="py-1 max-h-60 overflow-auto">
                             {filteredOptions?.length === 0 ? (
                                 <div className="px-3 py-2 text-sm text-muted-foreground">
@@ -220,11 +266,15 @@ const Select = React.forwardRef(({
                     </div>
                 )}
             </div>
+
+            {/* Helper Description */}
             {description && !error && (
                 <p className="text-sm text-muted-foreground mt-1">
                     {description}
                 </p>
             )}
+
+            {/* Error Message */}
             {error && (
                 <p className="text-sm text-destructive mt-1">
                     {error}

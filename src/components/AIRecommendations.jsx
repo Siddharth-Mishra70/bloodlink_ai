@@ -1,13 +1,36 @@
+/**
+ * @file AIRecommendations.jsx
+ * @description Dynamic AI-powered recommendation component for donors, patients, and staff.
+ * Fetches tailored health guidance, priority action items, reminders, and eligibility alerts
+ * via OpenAI's structured JSON schema responses.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Brain, TrendingUp, AlertTriangle, CheckCircle, Clock, ChevronRight } from 'lucide-react';
 import Button from './ui/Button';
 import { getPersonalizedRecommendations } from '../services/openaiService';
 
+/**
+ * AIRecommendations Component
+ *
+ * @component
+ * @param {Object} props - Component props.
+ * @param {Object} props.userProfile - Profile data (blood type, donation counts, health status).
+ * @param {'donor'|'patient'|'medical_staff'} [props.userType='donor'] - Role category of the user.
+ * @param {string} [props.className=''] - Container styling overrides.
+ * @returns {JSX.Element|null} Card with personalized recommendations and action items.
+ */
 const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) => {
+  // Structured recommendation state
   const [recommendations, setRecommendations] = useState(null);
+  // Async request loading state
   const [loading, setLoading] = useState(false);
+  // API error message state
   const [error, setError] = useState(null);
 
+  /**
+   * Fetches personalized advice from OpenAI based on the user's current profile.
+   */
   const loadRecommendations = async () => {
     if (!userProfile) return;
     
@@ -25,10 +48,16 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
     }
   };
 
+  // Re-fetch recommendations whenever profile or user type changes
   useEffect(() => {
     loadRecommendations();
   }, [userProfile, userType]);
 
+  /**
+   * Maps action priority level to an appropriate Lucide status icon.
+   * @param {'high'|'medium'|'low'} priority - Urgency indicator.
+   * @returns {JSX.Element} Icon component.
+   */
   const getPriorityIcon = (priority) => {
     switch (priority) {
       case 'high': return <AlertTriangle className="w-4 h-4 text-red-500" />;
@@ -38,6 +67,11 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
     }
   };
 
+  /**
+   * Maps action priority to Tailwind background and border color classes.
+   * @param {'high'|'medium'|'low'} priority - Urgency indicator.
+   * @returns {string} Tailwind CSS classes.
+   */
   const getPriorityBg = (priority) => {
     switch (priority) {
       case 'high': return 'bg-red-50 border-red-200';
@@ -47,6 +81,7 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
     }
   };
 
+  // Render skeleton loading view while query is executing
   if (loading) {
     return (
       <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
@@ -63,6 +98,7 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
     );
   }
 
+  // Render error card with retry button if API fails
   if (error) {
     return (
       <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
@@ -83,13 +119,14 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
     );
   }
 
+  // Hide component if no profile or recommendation data exists
   if (!recommendations) {
     return null;
   }
 
   return (
     <div className={`bg-white rounded-lg shadow-md ${className}`}>
-      {/* Header */}
+      {/* Header Banner */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3 mb-2">
           <Brain className="w-6 h-6 text-red-600" />
@@ -100,8 +137,9 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
         </div>
         <p className="text-gray-600 text-sm">{recommendations?.welcome_message}</p>
       </div>
+
       <div className="p-6 space-y-6">
-        {/* Key Recommendations */}
+        {/* Key Recommendations Section */}
         {recommendations?.key_recommendations?.length > 0 && (
           <div>
             <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -119,7 +157,7 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
           </div>
         )}
 
-        {/* Next Steps */}
+        {/* Prioritized Next Action Items */}
         {recommendations?.next_steps?.length > 0 && (
           <div>
             <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -148,7 +186,7 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
           </div>
         )}
 
-        {/* Health Tips */}
+        {/* Health Tips Section */}
         {recommendations?.health_tips?.length > 0 && (
           <div>
             <h4 className="font-semibold text-gray-800 mb-3">Health Tips</h4>
@@ -162,7 +200,7 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
           </div>
         )}
 
-        {/* Reminders */}
+        {/* Reminders & Scheduling Alerts */}
         {recommendations?.reminders?.length > 0 && (
           <div>
             <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -180,7 +218,7 @@ const AIRecommendations = ({ userProfile, userType = 'donor', className = '' }) 
           </div>
         )}
 
-        {/* Refresh Button */}
+        {/* Manual Refresh Button */}
         <div className="pt-4 border-t border-gray-200">
           <Button
             onClick={loadRecommendations}

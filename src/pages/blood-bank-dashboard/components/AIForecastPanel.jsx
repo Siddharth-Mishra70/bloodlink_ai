@@ -1,12 +1,35 @@
+/**
+ * @file AIForecastPanel.jsx
+ * @description Predictive AI Analytics panel for blood bank managers.
+ * Integrates Recharts line charts for demand forecasting, shortage risk warnings,
+ * and automated AI supply-chain recommendations.
+ */
+
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
+/**
+ * AIForecastPanel Component
+ *
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {Object} props.forecastData - Blood groups shortage models and actionable recommendations.
+ * @param {Array<{ date: string, predicted: number, current: number }>} props.demandPredictions - Time-series points for Recharts.
+ * @returns {JSX.Element} Visual analytics and predictive recommendations card.
+ */
 const AIForecastPanel = ({ forecastData, demandPredictions }) => {
+  // Active sub-view ('forecast' chart or 'recommendations' list)
   const [viewMode, setViewMode] = useState('forecast');
+  // Forecasting time horizon window
   const [timeRange, setTimeRange] = useState('7days');
 
+  /**
+   * Resolves priority badge color styling.
+   * @param {string} priority - Urgency rating ('high' | 'medium' | 'low').
+   * @returns {string} Tailwind CSS classes.
+   */
   const getRecommendationColor = (priority) => {
     switch (priority?.toLowerCase()) {
       case 'high':
@@ -20,6 +43,9 @@ const AIForecastPanel = ({ forecastData, demandPredictions }) => {
     }
   };
 
+  /**
+   * Custom floating tooltip rendering for the Recharts line chart.
+   */
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload?.length) {
       return (
@@ -38,6 +64,7 @@ const AIForecastPanel = ({ forecastData, demandPredictions }) => {
 
   return (
     <div className="bg-card rounded-lg border border-border medical-shadow">
+      {/* Header with Title and Mode Toggles */}
       <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -47,7 +74,9 @@ const AIForecastPanel = ({ forecastData, demandPredictions }) => {
               Beta
             </span>
           </div>
+
           <div className="flex items-center space-x-2">
+            {/* Horizon Selector */}
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e?.target?.value)}
@@ -57,133 +86,84 @@ const AIForecastPanel = ({ forecastData, demandPredictions }) => {
               <option value="14days">Next 14 Days</option>
               <option value="30days">Next 30 Days</option>
             </select>
+
+            {/* View Mode Toggle Buttons */}
             <div className="flex rounded-md border border-border overflow-hidden">
               <button
                 onClick={() => setViewMode('forecast')}
-                className={`px-3 py-1 text-sm font-medium transition-medical ${
-                  viewMode === 'forecast'
-                    ? 'bg-primary text-primary-foreground' :'bg-surface text-text-secondary hover:text-text-primary'
+                className={`px-3 py-1 text-xs font-medium ${
+                  viewMode === 'forecast' ? 'bg-primary text-white' : 'bg-surface text-text-secondary hover:text-text-primary'
                 }`}
               >
-                Forecast
+                Chart
               </button>
               <button
                 onClick={() => setViewMode('recommendations')}
-                className={`px-3 py-1 text-sm font-medium transition-medical ${
-                  viewMode === 'recommendations' ?'bg-primary text-primary-foreground' :'bg-surface text-text-secondary hover:text-text-primary'
+                className={`px-3 py-1 text-xs font-medium ${
+                  viewMode === 'recommendations' ? 'bg-primary text-white' : 'bg-surface text-text-secondary hover:text-text-primary'
                 }`}
               >
-                Recommendations
+                Actions
               </button>
             </div>
           </div>
         </div>
       </div>
+
       <div className="p-6">
-        {viewMode === 'forecast' ? (
-          <div className="space-y-6">
-            <div className="h-64">
+        {/* Chart View */}
+        {viewMode === 'forecast' && (
+          <div>
+            <div className="h-64 w-full mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={demandPredictions}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#64748B"
-                    fontSize={12}
-                  />
-                  <YAxis 
-                    stroke="#64748B"
-                    fontSize={12}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="date" stroke="#888888" fontSize={12} />
+                  <YAxis stroke="#888888" fontSize={12} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="predicted" 
-                    stroke="#2563EB" 
-                    strokeWidth={2}
-                    dot={{ fill: '#2563EB', strokeWidth: 2, r: 4 }}
-                    name="Predicted Demand"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="current" 
-                    stroke="#059669" 
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{ fill: '#059669', strokeWidth: 2, r: 4 }}
-                    name="Current Stock"
-                  />
+                  <Line type="monotone" dataKey="predicted" stroke="#ef4444" strokeWidth={2} name="Predicted Demand" />
+                  <Line type="monotone" dataKey="current" stroke="#3b82f6" strokeWidth={2} strokeDasharray="4 4" name="Current Stock" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Predicted Shortage Risk Chips */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               {forecastData?.bloodGroups?.map((group) => (
-                <div key={group?.type} className="bg-muted/30 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Icon name="Droplets" size={16} className="text-primary" />
-                      <span className="font-medium text-text-primary">{group?.type}</span>
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      group?.status === 'shortage' ? 'bg-error/10 text-error' :
-                      group?.status === 'low'? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'
-                    }`}>
-                      {group?.status}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">Current:</span>
-                      <span className="text-text-primary">{group?.current} units</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">Predicted Need:</span>
-                      <span className="text-text-primary">{group?.predicted} units</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">Confidence:</span>
-                      <span className="text-text-primary">{group?.confidence}%</span>
-                    </div>
+                <div key={group?.type} className="p-3 bg-surface rounded-lg border border-border text-center">
+                  <div className="font-bold text-sm text-text-primary">{group?.type}</div>
+                  <div className="text-xs text-text-secondary mt-1">Est: {group?.predicted} units</div>
+                  <div className={`text-[10px] font-bold uppercase mt-1 px-1.5 py-0.5 rounded ${
+                    group?.status === 'shortage' ? 'bg-error/10 text-error' : group?.status === 'low' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'
+                  }`}>
+                    {group?.status}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* Actionable Recommendations View */}
+        {viewMode === 'recommendations' && (
           <div className="space-y-4">
             {forecastData?.recommendations?.map((rec) => (
-              <div key={rec?.id} className={`border rounded-lg p-4 ${getRecommendationColor(rec?.priority)}`}>
+              <div key={rec?.id} className={`p-4 rounded-lg border ${getRecommendationColor(rec?.priority)}`}>
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Icon name={rec?.icon} size={16} />
-                      <span className="font-medium">{rec?.title}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full border ${getRecommendationColor(rec?.priority)}`}>
-                        {rec?.priority}
-                      </span>
-                    </div>
-                    <p className="text-sm opacity-90 mb-3">{rec?.description}</p>
-                    <div className="flex items-center space-x-4 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <Icon name="Clock" size={12} />
-                        <span>Action needed by: {rec?.deadline}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Icon name="Target" size={12} />
-                        <span>Impact: {rec?.impact}</span>
+                  <div className="flex items-start gap-3">
+                    <Icon name={rec?.icon || 'AlertCircle'} size={20} className="mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-sm text-text-primary">{rec?.title}</h4>
+                      <p className="text-xs text-text-secondary mt-1">{rec?.description}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs">
+                        <span className="font-medium">Target: {rec?.deadline}</span>
+                        <span className="opacity-80">Impact: {rec?.impact}</span>
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    iconName="ArrowRight"
-                    iconPosition="right"
-                    onClick={() => console.log('Take action:', rec?.id)}
-                  >
-                    Take Action
-                  </Button>
+                  <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-surface">
+                    {rec?.priority}
+                  </span>
                 </div>
               </div>
             ))}

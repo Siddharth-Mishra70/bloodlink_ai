@@ -1,19 +1,36 @@
+/**
+ * @file BloodAvailabilityPanel.jsx
+ * @description Real-time blood availability summary displaying nearby facilities,
+ * current units in stock for the requested blood group, distance from user, and direct hotline dialing.
+ */
+
 import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
+/**
+ * BloodAvailabilityPanel Component
+ *
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {string} props.selectedBloodGroup - Active blood group filter.
+ * @param {{ lat: number, lng: number }|null} props.userLocation - User coordinates.
+ * @returns {JSX.Element} Panel showing real-time inventory at nearby facilities.
+ */
 const BloodAvailabilityPanel = ({ selectedBloodGroup, userLocation }) => {
+  // Regional facilities inventory dataset
   const [availabilityData, setAvailabilityData] = useState([]);
+  // Loading status
   const [isLoading, setIsLoading] = useState(true);
+  // Last sync timestamp
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
-    // Mock API call to fetch real-time blood availability
+    // Fetch simulated real-time inventory from regional blood banks
     const fetchAvailability = () => {
       setIsLoading(true);
       
-      // Simulate API delay
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         const mockData = [
           {
             id: 'bb001',
@@ -56,234 +73,101 @@ const BloodAvailabilityPanel = ({ selectedBloodGroup, userLocation }) => {
             status: 'low_stock',
             responseTime: '25 mins',
             rating: 4.4
-          },
-          {
-            id: 'bb004',
-            name: 'Kailash Hospital Blood Bank',
-            address: 'Sector 27, Noida, UP 201301',
-            distance: '4.2 km',
-            phone: '+91 9876543213',
-            availability: {
-              'A+': 0, 'A-': 0, 'B+': 2, 'B-': 0,
-              'AB+': 1, 'AB-': 0, 'O+': 5, 'O-': 0
-            },
-            status: 'critical',
-            responseTime: '30 mins',
-            rating: 4.2
           }
         ];
 
         setAvailabilityData(mockData);
-        setLastUpdated(new Date());
         setIsLoading(false);
-      }, 1500);
+        setLastUpdated(new Date());
+      }, 1000);
+
+      return () => clearTimeout(timer);
     };
 
     fetchAvailability();
-    
-    // Auto-refresh every 2 minutes
-    const interval = setInterval(fetchAvailability, 120000);
-    return () => clearInterval(interval);
-  }, [selectedBloodGroup, userLocation]);
+  }, [selectedBloodGroup]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'available': return 'text-success';
-      case 'low_stock': return 'text-warning';
-      case 'critical': return 'text-error';
-      default: return 'text-text-secondary';
-    }
+  /**
+   * Triggers native telephone call to blood bank desk.
+   * @param {string} phone - Target phone number.
+   */
+  const handleCall = (phone) => {
+    window.open(`tel:${phone}`);
   };
 
-  const getStatusBg = (status) => {
-    switch (status) {
-      case 'available': return 'bg-success/10 border-success/20';
-      case 'low_stock': return 'bg-warning/10 border-warning/20';
-      case 'critical': return 'bg-error/10 border-error/20';
-      default: return 'bg-muted border-border';
-    }
+  /**
+   * Resolves stock health badge.
+   * @param {number} units - Available units.
+   * @returns {string} Tailwind CSS classes.
+   */
+  const getUnitsBadgeColor = (units) => {
+    if (units >= 10) return 'bg-success/10 text-success border-success/20';
+    if (units >= 5) return 'bg-warning/10 text-warning border-warning/20';
+    if (units > 0) return 'bg-error/10 text-error border-error/20';
+    return 'bg-muted text-text-secondary border-border';
   };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'available': return 'Available';
-      case 'low_stock': return 'Low Stock';
-      case 'critical': return 'Critical';
-      default: return 'Unknown';
-    }
-  };
-
-  const getAvailabilityForBloodGroup = (bloodBank, bloodGroup) => {
-    if (!bloodGroup) return 0;
-    return bloodBank?.availability?.[bloodGroup] || 0;
-  };
-
-  const sortedBloodBanks = availabilityData?.sort((a, b) => {
-    if (!selectedBloodGroup) return 0;
-    
-    const aUnits = getAvailabilityForBloodGroup(a, selectedBloodGroup);
-    const bUnits = getAvailabilityForBloodGroup(b, selectedBloodGroup);
-    
-    // Sort by availability (descending), then by distance (ascending)
-    if (aUnits !== bUnits) return bUnits - aUnits;
-    return parseFloat(a?.distance) - parseFloat(b?.distance);
-  });
-
-  const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setLastUpdated(new Date());
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleCallBloodBank = (phone) => {
-    window.open(`tel:${phone}`, '_self');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="bg-card rounded-lg medical-shadow p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-text-secondary">Loading blood availability...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-card rounded-lg medical-shadow p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-card border border-border rounded-lg p-6 medical-shadow">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
-            <Icon name="MapPin" size={20} className="text-primary" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-text-primary">Real-time Availability</h2>
-            <p className="text-sm text-text-secondary">
-              Last updated: {lastUpdated?.toLocaleTimeString('en-IN')}
-            </p>
-          </div>
+          <Icon name="Activity" size={20} className="text-primary" />
+          <h3 className="text-lg font-semibold text-text-primary">Nearby Live Availability</h3>
         </div>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          iconName="RefreshCw"
-          iconPosition="left"
-        >
-          Refresh
-        </Button>
+        <div className="text-xs text-text-secondary">
+          Updated {lastUpdated?.toLocaleTimeString()}
+        </div>
       </div>
-      {!selectedBloodGroup ? (
-        <div className="text-center py-8">
-          <Icon name="Droplets" size={48} className="text-text-secondary mx-auto mb-4" />
-          <p className="text-text-secondary">
-            Select a blood group in the form to see real-time availability
-          </p>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3]?.map(i => (
+            <div key={i} className="h-20 bg-muted/50 rounded-lg animate-pulse" />
+          ))}
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center space-x-2">
-              <Icon name="Target" size={16} className="text-primary" />
-              <span className="text-sm font-medium text-text-primary">
-                Showing availability for: {selectedBloodGroup}
-              </span>
-            </div>
-            <span className="text-xs text-text-secondary">
-              {sortedBloodBanks?.length} blood banks found
-            </span>
-          </div>
-
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {sortedBloodBanks?.map((bloodBank) => {
-              const availableUnits = getAvailabilityForBloodGroup(bloodBank, selectedBloodGroup);
-              
-              return (
-                <div
-                  key={bloodBank?.id}
-                  className={`p-4 rounded-lg border transition-medical ${getStatusBg(bloodBank?.status)}`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="font-medium text-text-primary">{bloodBank?.name}</h3>
-                        <div className="flex items-center space-x-1">
-                          <Icon name="Star" size={12} className="text-warning fill-current" />
-                          <span className="text-xs text-text-secondary">{bloodBank?.rating}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-text-secondary mb-2">{bloodBank?.address}</p>
-                      <div className="flex items-center space-x-4 text-xs text-text-secondary">
-                        <div className="flex items-center space-x-1">
-                          <Icon name="MapPin" size={12} />
-                          <span>{bloodBank?.distance}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Icon name="Clock" size={12} />
-                          <span>{bloodBank?.responseTime}</span>
-                        </div>
-                      </div>
+        <div className="space-y-3">
+          {availabilityData?.map((bank) => {
+            const units = selectedBloodGroup ? (bank?.availability?.[selectedBloodGroup] || 0) : null;
+            return (
+              <div
+                key={bank?.id}
+                className="p-4 rounded-lg border border-border bg-surface hover:bg-muted/30 transition-medical"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-semibold text-sm text-text-primary">{bank?.name}</h4>
+                      <span className="text-xs text-text-secondary">({bank?.distance})</span>
                     </div>
-                    
-                    <div className="text-right">
-                      <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusBg(bloodBank?.status)}`}>
-                        <Icon 
-                          name={bloodBank?.status === 'available' ? 'CheckCircle' : 
-                                bloodBank?.status === 'low_stock' ? 'AlertTriangle' : 'XCircle'} 
-                          size={12} 
-                          className={getStatusColor(bloodBank?.status)}
-                        />
-                        <span className={getStatusColor(bloodBank?.status)}>
-                          {getStatusText(bloodBank?.status)}
-                        </span>
-                      </div>
+                    <p className="text-xs text-text-secondary mt-1">{bank?.address}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-text-secondary">
+                      <span>Response: {bank?.responseTime}</span>
+                      <span>Rating: {bank?.rating} ★</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-2">
-                        <Icon name="Droplets" size={16} className="text-primary" />
-                        <span className="text-sm font-medium text-text-primary">
-                          {availableUnits} units available
-                        </span>
-                      </div>
-                      {availableUnits > 0 && (
-                        <div className="flex items-center space-x-1 text-xs text-success">
-                          <Icon name="CheckCircle" size={12} />
-                          <span>In Stock</span>
-                        </div>
-                      )}
-                    </div>
-                    
+
+                  <div className="flex flex-col items-end gap-2 ml-3">
+                    {selectedBloodGroup && (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${getUnitsBadgeColor(units)}`}>
+                        {units} units ({selectedBloodGroup})
+                      </span>
+                    )}
                     <Button
-                      variant={availableUnits > 0 ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleCallBloodBank(bloodBank?.phone)}
+                      variant="outline"
+                      size="xs"
+                      onClick={() => handleCall(bank?.phone)}
                       iconName="Phone"
                       iconPosition="left"
-                      disabled={availableUnits === 0}
                     >
-                      Call Now
+                      Call
                     </Button>
                   </div>
-                  {availableUnits === 0 && (
-                    <div className="mt-3 p-2 bg-error/5 border border-error/20 rounded text-xs text-error">
-                      <div className="flex items-center space-x-1">
-                        <Icon name="AlertTriangle" size={12} />
-                        <span>No units available. Consider alternative blood groups or contact directly.</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

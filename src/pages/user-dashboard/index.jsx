@@ -1,3 +1,11 @@
+/**
+ * @file index.jsx
+ * @description User Dashboard page for BloodLink AI.
+ * Personal portal for registered donors and patients to monitor active blood requests,
+ * track donation eligibility history, inspect personalized AI health recommendations,
+ * and initiate 24/7 one-click emergency blood requisitions.
+ */
+
 import React, { useEffect } from 'react';
 import Header from '../../components/ui/Header';
 import EmergencyAccessCard from './components/EmergencyAccessCard';
@@ -7,6 +15,12 @@ import PersonalizedRecommendations from './components/PersonalizedRecommendation
 import QuickActionsPanel from './components/QuickActionsPanel';
 import UserProfileCard from './components/UserProfileCard';
 
+/**
+ * UserDashboard Component
+ *
+ * @component
+ * @returns {JSX.Element} Comprehensive donor and patient portal.
+ */
 const UserDashboard = () => {
   useEffect(() => {
     document.title = 'User Dashboard - BloodLink AI';
@@ -18,7 +32,7 @@ const UserDashboard = () => {
       
       <main className="pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Page Header */}
+          {/* Page Greeting & Live System Online Status */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
@@ -36,38 +50,32 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          {/* Emergency Access Section */}
+          {/* Quick Emergency Requisition Callout Banner */}
           <div className="mb-8">
             <EmergencyAccessCard />
           </div>
 
-          {/* Main Dashboard Grid */}
+          {/* Main 2-Column Dashboard Grid */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Primary Content */}
+            {/* Left 2 Columns - Active Request Queue & Past Request History */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Active Requests Status */}
               <RequestStatusPanel />
-              
-              {/* Recent Request History */}
               <RecentRequestHistory />
             </div>
 
-            {/* Right Column - Secondary Content */}
+            {/* Right Column - User Profile Card & Quick Action Shortcuts */}
             <div className="space-y-8">
-              {/* User Profile Card */}
               <UserProfileCard />
-              
-              {/* Quick Actions */}
               <QuickActionsPanel />
             </div>
           </div>
 
-          {/* Personalized Recommendations Section */}
+          {/* AI-Powered Personalized Recommendations Section */}
           <div className="mt-8">
             <PersonalizedRecommendations />
           </div>
 
-          {/* Footer Information */}
+          {/* Value Proposition Highlights Strip */}
           <div className="mt-12 pt-8 border-t border-border">
             <div className="grid md:grid-cols-3 gap-6 text-center">
               <div className="bg-white rounded-lg p-6 border border-border medical-shadow">
@@ -102,7 +110,7 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          {/* Emergency Helpline */}
+          {/* Emergency 24/7 National Hotlines Banner */}
           <div className="mt-8 bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-6 text-white text-center">
             <h3 className="text-xl font-semibold mb-2">Emergency Helpline</h3>
             <p className="text-red-100 mb-4">

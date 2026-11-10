@@ -1,8 +1,31 @@
+/**
+ * @file BloodBankCard.jsx
+ * @description Card component presenting a single blood bank facility's details:
+ * real-time blood stock counts, operating hours, NABH certifications, distance from user,
+ * average review score, and direct actions (Request Blood, Call, View Details).
+ */
+
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
+/**
+ * BloodBankCard Component
+ *
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {Object} props.bloodBank - Blood bank facility data object.
+ * @param {(bank: Object) => void} props.onRequestBlood - Callback to initiate emergency request.
+ * @param {(bank: Object) => void} props.onViewDetails - Callback to inspect facility details.
+ * @param {(phone: string) => void} props.onCall - Callback to trigger phone dialer.
+ * @returns {JSX.Element} Interactive blood bank facility overview card.
+ */
 const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => {
+  /**
+   * Resolves availability text color classes based on stock level.
+   * @param {'high'|'medium'|'low'} status - Inventory status string.
+   * @returns {string} Tailwind text color class.
+   */
   const getAvailabilityColor = (status) => {
     switch (status) {
       case 'high': return 'text-success';
@@ -12,6 +35,11 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
     }
   };
 
+  /**
+   * Resolves Lucide icon name for stock health status.
+   * @param {'high'|'medium'|'low'} status - Inventory status string.
+   * @returns {string} Icon identifier.
+   */
   const getAvailabilityIcon = (status) => {
     switch (status) {
       case 'high': return 'CheckCircle';
@@ -21,6 +49,11 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
     }
   };
 
+  /**
+   * Resolves pill badge color by unit count.
+   * @param {number} availability - Units currently available.
+   * @returns {string} Tailwind background & text color classes.
+   */
   const getBloodGroupColor = (availability) => {
     if (availability >= 10) return 'bg-success text-success-foreground';
     if (availability >= 5) return 'bg-warning text-warning-foreground';
@@ -30,7 +63,7 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
 
   return (
     <div className="bg-card border border-border rounded-lg p-6 medical-shadow hover:medical-shadow-lg transition-medical">
-      {/* Header */}
+      {/* Header: Facility Name, Verified Badge, Distance, Response Time, Stock Health */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
@@ -50,6 +83,8 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
             </div>
           </div>
         </div>
+
+        {/* Aggregate Stock Status Badge */}
         <div className="flex items-center space-x-1">
           <Icon 
             name={getAvailabilityIcon(bloodBank?.availabilityStatus)} 
@@ -63,12 +98,14 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
           </span>
         </div>
       </div>
-      {/* Address */}
+
+      {/* Facility Physical Address */}
       <div className="mb-4">
         <p className="text-sm text-text-secondary">{bloodBank?.address}</p>
         <p className="text-sm text-text-secondary">PIN: {bloodBank?.pinCode}</p>
       </div>
-      {/* Blood Groups Availability */}
+
+      {/* Available Blood Groups Breakdown Grid */}
       <div className="mb-4">
         <h4 className="text-sm font-medium text-text-primary mb-2">Available Blood Groups</h4>
         <div className="grid grid-cols-4 gap-2">
@@ -83,7 +120,8 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
           ))}
         </div>
       </div>
-      {/* Certifications */}
+
+      {/* Accreditation Certifications (NABH, ISO) */}
       {bloodBank?.certifications && bloodBank?.certifications?.length > 0 && (
         <div className="mb-4">
           <div className="flex items-center space-x-2">
@@ -94,7 +132,8 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
           </div>
         </div>
       )}
-      {/* Rating */}
+
+      {/* User Reviews & Star Rating */}
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center space-x-1">
           {[...Array(5)]?.map((_, i) => (
@@ -110,7 +149,8 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
           {bloodBank?.rating} ({bloodBank?.reviewCount} reviews)
         </span>
       </div>
-      {/* Operating Hours */}
+
+      {/* Operating Hours / Open Status */}
       <div className="mb-4">
         <div className="flex items-center space-x-2 text-sm">
           <Icon name="Clock" size={14} className="text-text-secondary" />
@@ -123,7 +163,8 @@ const BloodBankCard = ({ bloodBank, onRequestBlood, onViewDetails, onCall }) => 
           </span>
         </div>
       </div>
-      {/* Actions */}
+
+      {/* Action Buttons: Request Blood, Call Helpline, View Details */}
       <div className="flex items-center space-x-3">
         <Button
           variant="default"

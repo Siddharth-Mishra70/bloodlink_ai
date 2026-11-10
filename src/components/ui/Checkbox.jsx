@@ -1,7 +1,31 @@
+/**
+ * @file Checkbox.jsx
+ * @description Accessible Checkbox and CheckboxGroup components supporting tri-state
+ * (checked, unchecked, indeterminate), error messages, labels, and helper descriptions.
+ */
+
 import React from "react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "../../utils/cn";
 
+/**
+ * Checkbox Component
+ *
+ * @component
+ * @param {Object} props - Checkbox props.
+ * @param {string} [props.className] - Container CSS classes.
+ * @param {string} [props.id] - Element ID (auto-generated if omitted).
+ * @param {boolean} props.checked - Controlled check state.
+ * @param {boolean} [props.indeterminate=false] - Tri-state partial selection indicator.
+ * @param {boolean} [props.disabled=false] - Disables toggling.
+ * @param {boolean} [props.required=false] - Denotes mandatory form field.
+ * @param {React.ReactNode} [props.label] - Label text displayed alongside checkbox.
+ * @param {string} [props.description] - Sub-text providing field context.
+ * @param {string} [props.error] - Validation error message.
+ * @param {'sm'|'default'|'lg'} [props.size='default'] - Size variation.
+ * @param {React.Ref<HTMLInputElement>} ref - Forwarded input ref.
+ * @returns {JSX.Element} Rendered accessible checkbox element.
+ */
 const Checkbox = React.forwardRef(({
     className,
     id,
@@ -15,10 +39,10 @@ const Checkbox = React.forwardRef(({
     size = "default",
     ...props
 }, ref) => {
-    // Generate unique ID if not provided
+    // Generate unique ID if not explicitly provided
     const checkboxId = id || `checkbox-${Math.random()?.toString(36)?.substr(2, 9)}`;
 
-    // Size variants
+    // Dimensions according to selected size
     const sizeClasses = {
         sm: "h-4 w-4",
         default: "h-4 w-4",
@@ -28,6 +52,7 @@ const Checkbox = React.forwardRef(({
     return (
         <div className={cn("flex items-start space-x-2", className)}>
             <div className="relative flex items-center">
+                {/* Screen-reader accessible hidden native checkbox */}
                 <input
                     type="checkbox"
                     ref={ref}
@@ -39,6 +64,7 @@ const Checkbox = React.forwardRef(({
                     {...props}
                 />
 
+                {/* Custom styled visual checkbox square */}
                 <label
                     htmlFor={checkboxId}
                     className={cn(
@@ -50,14 +76,18 @@ const Checkbox = React.forwardRef(({
                         disabled && "cursor-not-allowed opacity-50"
                     )}
                 >
+                    {/* Render Check icon when checked */}
                     {checked && !indeterminate && (
                         <Check className="h-3 w-3 text-current flex items-center justify-center" />
                     )}
+                    {/* Render Minus icon when indeterminate */}
                     {indeterminate && (
                         <Minus className="h-3 w-3 text-current flex items-center justify-center" />
                     )}
                 </label>
             </div>
+
+            {/* Optional label, contextual description, and validation error */}
             {(label || description || error) && (
                 <div className="flex-1 space-y-1">
                     {label && (
@@ -92,7 +122,22 @@ const Checkbox = React.forwardRef(({
 
 Checkbox.displayName = "Checkbox";
 
-// Checkbox Group component
+/**
+ * CheckboxGroup Component
+ * Wraps a collection of checkboxes inside an accessible <fieldset> with legend.
+ *
+ * @component
+ * @param {Object} props - CheckboxGroup props.
+ * @param {string} [props.className] - Fieldset styling.
+ * @param {React.ReactNode} props.children - Checkbox items.
+ * @param {string} [props.label] - Fieldset legend header.
+ * @param {string} [props.description] - Group instructions.
+ * @param {string} [props.error] - Group-level error message.
+ * @param {boolean} [props.required=false] - Requires at least one selection.
+ * @param {boolean} [props.disabled=false] - Disables all group inputs.
+ * @param {React.Ref<HTMLFieldSetElement>} ref - Forwarded fieldset ref.
+ * @returns {JSX.Element} Fieldset wrapping multiple checkboxes.
+ */
 const CheckboxGroup = React.forwardRef(({
     className,
     children,

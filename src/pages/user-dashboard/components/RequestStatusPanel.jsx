@@ -1,16 +1,32 @@
+/**
+ * @file RequestStatusPanel.jsx
+ * @description Real-time tracking panel displaying the user's active in-flight blood requests,
+ * current status (Pending, Approved, Fulfilled, Declined), estimated fulfillment time,
+ * and hospital pickup details.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
+/**
+ * RequestStatusPanel Component
+ *
+ * @component
+ * @returns {JSX.Element} Active requests status tracking panel.
+ */
 const RequestStatusPanel = () => {
   const navigate = useNavigate();
+
+  // Active requests list
   const [activeRequests, setActiveRequests] = useState([]);
+  // Async data fetch loading indicator
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock active requests data
-    setTimeout(() => {
+    // Populate active tracking data
+    const timer = setTimeout(() => {
       setActiveRequests([
         {
           id: "REQ-2025-001",
@@ -37,8 +53,15 @@ const RequestStatusPanel = () => {
       ]);
       setLoading(false);
     }, 800);
+
+    return () => clearTimeout(timer);
   }, []);
 
+  /**
+   * Resolves badge color based on lifecycle stage.
+   * @param {string} status - 'Pending' | 'Approved' | 'Declined' | 'Fulfilled'
+   * @returns {string} Tailwind CSS classes.
+   */
   const getStatusColor = (status) => {
     const colors = {
       'Pending': 'text-yellow-700 bg-yellow-100 border-yellow-300',
@@ -49,6 +72,11 @@ const RequestStatusPanel = () => {
     return colors?.[status] || 'text-gray-700 bg-gray-100 border-gray-300';
   };
 
+  /**
+   * Resolves urgency chip colors.
+   * @param {string} urgency - 'Critical' | 'Urgent' | 'Normal'
+   * @returns {string} Tailwind CSS classes.
+   */
   const getUrgencyColor = (urgency) => {
     const colors = {
       'Critical': 'text-red-700 bg-red-100',
@@ -58,158 +86,77 @@ const RequestStatusPanel = () => {
     return colors?.[urgency] || 'text-gray-700 bg-gray-100';
   };
 
-  const getStatusIcon = (status) => {
-    const icons = {
-      'Pending': 'Clock',
-      'Approved': 'CheckCircle',
-      'Declined': 'XCircle',
-      'Fulfilled': 'Package'
-    };
-    return icons?.[status] || 'Circle';
-  };
-
-  const formatTimeAgo = (date) => {
-    const minutes = Math.floor((Date.now() - date?.getTime()) / 60000);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6 medical-shadow">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="animate-spin">
-            <Icon name="Loader2" size={20} className="text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800">Loading Request Status...</h3>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 medical-shadow">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-card border border-border rounded-lg p-6 medical-shadow">
+      {/* Header with Title & Active Count */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
-            <Icon name="Activity" size={20} className="text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">Active Requests</h3>
-            <p className="text-sm text-gray-600">Real-time status updates</p>
-          </div>
+          <Icon name="Activity" size={20} className="text-primary" />
+          <h3 className="text-lg font-semibold text-text-primary">Active Requests</h3>
+          <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-0.5 rounded-full">
+            {activeRequests?.length} Active
+          </span>
         </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-xs text-gray-600 font-medium">Live Updates</span>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/emergency-blood-request')}
+          iconName="Plus"
+          iconPosition="left"
+        >
+          New Request
+        </Button>
       </div>
-      {activeRequests?.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4">
-            <Icon name="FileText" size={24} className="text-gray-400" />
-          </div>
-          <h4 className="text-lg font-medium text-gray-800 mb-2">No Active Requests</h4>
-          <p className="text-sm text-gray-600 mb-4">You don't have any pending blood requests at the moment.</p>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/emergency-blood-request')}
-            iconName="Plus"
-            iconPosition="left"
-          >
-            Create New Request
-          </Button>
+
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2]?.map(i => (
+            <div key={i} className="h-28 bg-muted/50 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : activeRequests?.length === 0 ? (
+        <div className="text-center py-8 text-text-secondary">
+          <Icon name="Inbox" size={36} className="mx-auto mb-2 opacity-40" />
+          <p className="text-sm">No active blood requests at this time.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {activeRequests?.map((request) => (
-            <div key={request?.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-medical">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full">
-                    <span className="text-sm font-bold text-red-700">{request?.bloodType}</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-800">Request #{request?.id}</h4>
-                    <p className="text-sm text-gray-600">{request?.quantity} unit{request?.quantity > 1 ? 's' : ''} needed</p>
-                  </div>
-                </div>
+            <div
+              key={request?.id}
+              className="p-5 border border-border rounded-lg bg-surface hover:bg-muted/30 transition-medical"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                 <div className="flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getUrgencyColor(request?.urgency)}`}>
+                  <span className="font-mono text-xs font-bold text-text-secondary">{request?.id}</span>
+                  <span className="font-bold text-base text-primary bg-primary/10 px-2.5 py-0.5 rounded">
+                    {request?.bloodType}
+                  </span>
+                  <span className="text-sm text-text-secondary">({request?.quantity} Units)</span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${getUrgencyColor(request?.urgency)}`}>
                     {request?.urgency}
                   </span>
-                  <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(request?.status)}`}>
-                    <Icon name={getStatusIcon(request?.status)} size={12} />
-                    <span>{request?.status}</span>
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${getStatusColor(request?.status)}`}>
+                    {request?.status}
                   </span>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-3">
-                <div className="flex items-center space-x-2">
-                  <Icon name="Building2" size={14} className="text-gray-500" />
-                  <span className="text-sm text-gray-700">{request?.bloodBank}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-text-secondary">
+                <div className="flex items-center space-x-1.5">
+                  <Icon name="Building2" size={14} />
+                  <span>{request?.bloodBank} ({request?.location})</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="MapPin" size={14} className="text-gray-500" />
-                  <span className="text-sm text-gray-700">{request?.location}</span>
+                <div className="flex items-center space-x-1.5 font-medium text-text-primary">
+                  <Icon name="Clock" size={14} className="text-primary" />
+                  <span>ETA: {request?.estimatedTime}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="Clock" size={14} className="text-gray-500" />
-                  <span className="text-sm text-gray-700">Requested {formatTimeAgo(request?.requestedAt)}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="Timer" size={14} className="text-gray-500" />
-                  <span className="text-sm text-gray-700">{request?.estimatedTime}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div className="flex items-center space-x-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    iconName="Eye"
-                    iconPosition="left"
-                  >
-                    View Details
-                  </Button>
-                  {request?.status === 'Pending' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      iconName="X"
-                      iconPosition="left"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-                {request?.status === 'Approved' && (
-                  <div className="flex items-center space-x-2 text-green-700">
-                    <Icon name="CheckCircle" size={16} />
-                    <span className="text-sm font-medium">Ready for pickup</span>
-                  </div>
-                )}
               </div>
             </div>
           ))}
-
-          <div className="pt-4 border-t border-gray-200">
-            <Button
-              variant="outline"
-              fullWidth
-              onClick={() => navigate('/user-dashboard')}
-              iconName="History"
-              iconPosition="left"
-            >
-              View All Request History
-            </Button>
-          </div>
         </div>
       )}
     </div>

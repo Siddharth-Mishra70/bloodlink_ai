@@ -1,9 +1,25 @@
+/**
+ * @file openaiService.js
+ * @description Core artificial intelligence services for the BloodLink AI platform.
+ * Provides integration with OpenAI models for:
+ * 1. Conversational assistance for blood donation inquiries.
+ * 2. Predictive blood inventory forecasting with structured JSON schema outputs.
+ * 3. Emergency triage & alternative blood group compatibility calculations.
+ * 4. Low-latency streaming chat interactions.
+ * 5. Personalized donor & patient healthcare recommendations.
+ * 6. Automated user-generated content safety moderation.
+ */
+
 import openai from './openaiClient';
 
 /**
- * Generates a basic chat completion response for blood bank queries.
- * @param {string} userMessage - The user's input message.
- * @returns {Promise<string>} The assistant's response.
+ * Generates a conversational response for blood bank queries and donation procedures.
+ *
+ * @async
+ * @function getBloodBankChatCompletion
+ * @param {string} userMessage - The user's input question or issue description.
+ * @returns {Promise<string>} The assistant's generated advice or explanation.
+ * @throws {Error} Propagates any OpenAI API communication or quota error.
  */
 export async function getBloodBankChatCompletion(userMessage) {
   try {
@@ -29,15 +45,25 @@ export async function getBloodBankChatCompletion(userMessage) {
 }
 
 /**
- * Generates AI-powered blood availability forecasts and recommendations.
- * @param {Object} inventoryData - Current blood inventory data.
- * @param {Object} historicalData - Historical usage patterns.
- * @returns {Promise<Object>} Structured forecast response.
+ * Generates predictive blood inventory forecasts and replenishment recommendations using structured JSON outputs.
+ *
+ * @async
+ * @function getBloodInventoryForecast
+ * @param {Object} inventoryData - Current stock levels, expiry dates, and blood type distribution.
+ * @param {Object} historicalData - Historical usage velocity, emergency pull rates, and seasonal trends.
+ * @returns {Promise<{
+ *   forecast_summary: string,
+ *   critical_alerts: Array<{ blood_type: string, alert_level: 'low'|'critical'|'urgent', days_remaining: number, recommendation: string }>,
+ *   recommendations: string[],
+ *   next_actions: Array<{ action: string, priority: 'high'|'medium'|'low', timeline?: string }>
+ * }>} Parsed structured JSON forecast response.
+ * @throws {Error} If API call fails or response parsing encounters invalid syntax.
  */
 export async function getBloodInventoryForecast(inventoryData, historicalData) {
   try {
     const prompt = `Based on current inventory: ${JSON.stringify(inventoryData)} and historical patterns: ${JSON.stringify(historicalData)}, provide blood availability forecast and recommendations.`;
 
+    // Request structured output enforced by a rigorous JSON Schema
     const response = await openai?.chat?.completions?.create({
       model: 'gpt-5',
       messages: [
@@ -102,9 +128,20 @@ export async function getBloodInventoryForecast(inventoryData, historicalData) {
 }
 
 /**
- * Analyzes emergency blood requests and provides smart recommendations.
- * @param {Object} requestData - Emergency blood request details.
- * @returns {Promise<Object>} Structured emergency response.
+ * Analyzes emergency blood dispatch requests and formulates prioritized emergency recommendations.
+ * Computes clinically valid alternative compatible blood groups when requested types are scarce.
+ *
+ * @async
+ * @function getEmergencyBloodRecommendations
+ * @param {Object} requestData - Urgent request details (patient blood type, units needed, hospital, urgency).
+ * @returns {Promise<{
+ *   urgency_level: 'critical'|'high'|'moderate',
+ *   primary_recommendation: string,
+ *   alternative_blood_types: Array<{ blood_type: string, compatibility: string, availability_estimate?: string }>,
+ *   immediate_actions: string[],
+ *   estimated_response_time?: string
+ * }>} Parsed structured emergency response.
+ * @throws {Error} If emergency AI triage analysis fails.
  */
 export async function getEmergencyBloodRecommendations(requestData) {
   try {
@@ -163,13 +200,19 @@ export async function getEmergencyBloodRecommendations(requestData) {
 }
 
 /**
- * Streams AI chat responses for real-time assistance.
- * @param {string} userMessage - The user's input message.
- * @param {Function} onChunk - Callback to handle each streamed chunk.
- * @param {string} context - Chat context ('general', 'emergency', 'donor', 'medical').
+ * Streams AI chat responses token-by-token for real-time reactive user interfaces.
+ *
+ * @async
+ * @function getStreamingChatAssistance
+ * @param {string} userMessage - The message submitted by the user.
+ * @param {(chunk: string) => void} onChunk - Callback executed on receipt of each streaming text token.
+ * @param {'general'|'emergency'|'donor'|'medical'} [context='general'] - Operational domain context persona.
+ * @returns {Promise<void>} Resolves when the stream reaches completion.
+ * @throws {Error} If streaming stream terminates prematurely or errors.
  */
 export async function getStreamingChatAssistance(userMessage, onChunk, context = 'general') {
   try {
+    // Context-specific system prompts to tune behavior and urgency
     const systemMessages = {
       general: 'You are a helpful blood bank assistant. Provide clear, accurate information about blood donation, requirements, and processes.',
       emergency: 'You are an emergency blood request assistant. Prioritize speed and accuracy in emergency situations. Be direct and actionable.',
@@ -178,16 +221,17 @@ export async function getStreamingChatAssistance(userMessage, onChunk, context =
     };
 
     const stream = await openai?.chat?.completions?.create({
-      model: 'gpt-5-mini', // Faster streaming
+      model: 'gpt-5-mini', // Lightweight model selected for low-latency streaming
       messages: [
         { role: 'system', content: systemMessages?.[context] || systemMessages?.general },
         { role: 'user', content: userMessage },
       ],
       stream: true,
-      reasoning_effort: 'minimal', // For faster streaming
+      reasoning_effort: 'minimal', // Minimal reasoning overhead for instant token delivery
       verbosity: 'medium'
     });
 
+    // Iterate asynchronously through arriving stream chunks
     for await (const chunk of stream) {
       const content = chunk?.choices?.[0]?.delta?.content || '';
       if (content) {
@@ -201,10 +245,20 @@ export async function getStreamingChatAssistance(userMessage, onChunk, context =
 }
 
 /**
- * Generates personalized recommendations for blood bank users.
- * @param {Object} userProfile - User profile data.
- * @param {string} userType - Type of user ('donor', 'patient', 'medical_staff').
- * @returns {Promise<Object>} Personalized recommendations.
+ * Generates personalized medical insights, reminders, and next steps for donors or patients.
+ *
+ * @async
+ * @function getPersonalizedRecommendations
+ * @param {Object} userProfile - Profile details including donation history, eligibility date, blood type.
+ * @param {'donor'|'patient'|'medical_staff'} userType - Category of authenticated user.
+ * @returns {Promise<{
+ *   welcome_message: string,
+ *   key_recommendations: string[],
+ *   next_steps: Array<{ title: string, description: string, priority: 'high'|'medium'|'low' }>,
+ *   health_tips?: string[],
+ *   reminders?: string[]
+ * }>} Personalized structured user insights.
+ * @throws {Error} If OpenAI service call fails.
  */
 export async function getPersonalizedRecommendations(userProfile, userType) {
   try {
@@ -269,9 +323,13 @@ export async function getPersonalizedRecommendations(userProfile, userType) {
 }
 
 /**
- * Moderates user-generated content for safety.
- * @param {string} text - The text to moderate.
- * @returns {Promise<object>} Moderation results.
+ * Validates user-submitted content against OpenAI moderation safety guidelines to prevent abuse.
+ *
+ * @async
+ * @function moderateContent
+ * @param {string} text - The user input string or notes to be moderated.
+ * @returns {Promise<Object>} Moderation result object detailing flagged categories and scores.
+ * @throws {Error} If moderation API request fails.
  */
 export async function moderateContent(text) {
   try {

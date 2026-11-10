@@ -1,3 +1,11 @@
+/**
+ * @file index.jsx
+ * @description Emergency Blood Request Portal page for BloodLink AI.
+ * Enables patients, hospitals, and emergency responders to broadcast immediate, life-saving
+ * blood requisitions, view real-time compatible blood availability, review AI triage recommendations,
+ * and track automated dispatch notifications.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
@@ -9,17 +17,30 @@ import BloodAvailabilityPanel from './components/BloodAvailabilityPanel';
 import AlternativeBloodGroupSuggestions from './components/AlternativeBloodGroupSuggestions';
 import LocationMapView from './components/LocationMapView';
 
+/**
+ * EmergencyBloodRequest Component
+ *
+ * @component
+ * @returns {JSX.Element} Emergency blood request portal.
+ */
 const EmergencyBloodRequest = () => {
   const navigate = useNavigate();
+
+  // Async submission status flag
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Blood group currently selected in the request form
   const [selectedBloodGroup, setSelectedBloodGroup] = useState('');
+  // User GPS coordinates
   const [userLocation, setUserLocation] = useState(null);
+  // Real-time stock counts at regional blood banks
   const [availabilityData, setAvailabilityData] = useState([]);
+  // Success dialog modal visibility flag
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // Generated emergency request tracking code
   const [requestId, setRequestId] = useState('');
 
   useEffect(() => {
-    // Mock availability data
+    // Simulated regional inventory data
     const mockAvailabilityData = [
       {
         id: 'bb001',
@@ -67,7 +88,7 @@ const EmergencyBloodRequest = () => {
 
     setAvailabilityData(mockAvailabilityData);
 
-    // Get user location
+    // Resolve user geolocation coordinates
     if (navigator.geolocation) {
       navigator.geolocation?.getCurrentPosition(
         (position) => {
@@ -83,22 +104,26 @@ const EmergencyBloodRequest = () => {
     }
   }, []);
 
+  /**
+   * Transmits patient emergency requisition to the dispatch network.
+   * @param {Object} formData - Validated form parameters.
+   */
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true);
     setSelectedBloodGroup(formData?.bloodGroup);
 
     try {
-      // Simulate API call
+      // Simulate API network transmission
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Generate mock request ID
+      // Generate tracking requisition code
       const mockRequestId = `ER${Date.now()?.toString()?.slice(-6)}`;
       setRequestId(mockRequestId);
       
-      // Show success modal
+      // Reveal confirmation modal
       setShowSuccessModal(true);
       
-      // Auto-redirect after 5 seconds
+      // Auto-navigate to user dashboard after 5 seconds
       setTimeout(() => {
         navigate('/user-dashboard');
       }, 5000);
@@ -111,10 +136,16 @@ const EmergencyBloodRequest = () => {
     }
   };
 
+  /**
+   * Fast-dials India emergency ambulance hotline (108).
+   */
   const handleEmergencyCall = () => {
     window.open('tel:108', '_self');
   };
 
+  /**
+   * Immediate navigation to user dashboard.
+   */
   const handleGoToDashboard = () => {
     navigate('/user-dashboard');
   };
@@ -126,11 +157,12 @@ const EmergencyBloodRequest = () => {
         <meta name="description" content="Submit urgent blood requests and connect with nearby blood banks instantly. AI-powered emergency blood management system." />
         <meta name="keywords" content="emergency blood request, blood bank, urgent blood, blood donation, medical emergency" />
       </Helmet>
+
       <div className="min-h-screen bg-background">
         <Header />
         
         <main className="pt-16">
-          {/* Emergency Header Banner */}
+          {/* Critical Emergency Banner */}
           <div className="bg-error text-white py-4">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between">
@@ -139,7 +171,7 @@ const EmergencyBloodRequest = () => {
                   <div>
                     <h1 className="text-lg font-semibold">Emergency Blood Request Portal</h1>
                     <p className="text-sm opacity-90">
-                      For life-threatening emergencies, call 108 immediately
+                      For immediate life-threatening trauma, dial 108 immediately
                     </p>
                   </div>
                 </div>
@@ -149,7 +181,7 @@ const EmergencyBloodRequest = () => {
                   onClick={handleEmergencyCall}
                   iconName="Phone"
                   iconPosition="left"
-                  className="border-white text-white hover:bg-white hover:text-error"
+                  className="bg-white text-error hover:bg-white/90 border-transparent font-bold"
                 >
                   Call 108
                 </Button>
@@ -157,147 +189,73 @@ const EmergencyBloodRequest = () => {
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Main Emergency Workspace Layout */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column - Form */}
-              <div className="space-y-6">
-                <BloodRequestForm 
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left 2 Columns: Requisition Form & Compatibility Engine */}
+              <div className="lg:col-span-2 space-y-8">
+                <BloodRequestForm
                   onSubmit={handleFormSubmit}
                   isSubmitting={isSubmitting}
                 />
-                
-                {selectedBloodGroup && (
-                  <LocationMapView 
-                    hospitalAddress=""
-                    nearbyBloodBanks={availabilityData}
-                  />
-                )}
+
+                <AlternativeBloodGroupSuggestions
+                  selectedBloodGroup={selectedBloodGroup}
+                  availabilityData={availabilityData}
+                />
               </div>
 
-              {/* Right Column - Availability & Suggestions */}
-              <div className="space-y-6">
-                <BloodAvailabilityPanel 
+              {/* Right Column: Live Availability & Dispatch Map */}
+              <div className="space-y-8">
+                <BloodAvailabilityPanel
                   selectedBloodGroup={selectedBloodGroup}
                   userLocation={userLocation}
                 />
-                
-                {selectedBloodGroup && availabilityData?.length > 0 && (
-                  <AlternativeBloodGroupSuggestions 
-                    selectedBloodGroup={selectedBloodGroup}
-                    availabilityData={availabilityData}
-                  />
-                )}
-              </div>
-            </div>
 
-            {/* Emergency Guidelines */}
-            <div className="mt-12 bg-card rounded-lg medical-shadow p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
-                  <Icon name="BookOpen" size={20} className="text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-text-primary">Emergency Guidelines</h2>
-                  <p className="text-sm text-text-secondary">
-                    Important information for emergency blood requests
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Icon name="Clock" size={16} className="text-primary" />
-                    <h3 className="font-medium text-text-primary">Response Times</h3>
-                  </div>
-                  <ul className="text-sm text-text-secondary space-y-1">
-                    <li>• Emergency: 5-15 minutes</li>
-                    <li>• Urgent: 15-30 minutes</li>
-                    <li>• Planned: 1-2 hours</li>
-                    <li>• Confirmation via SMS/Call</li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Icon name="FileText" size={16} className="text-primary" />
-                    <h3 className="font-medium text-text-primary">Required Documents</h3>
-                  </div>
-                  <ul className="text-sm text-text-secondary space-y-1">
-                    <li>• Patient ID proof</li>
-                    <li>• Medical prescription</li>
-                    <li>• Hospital admission letter</li>
-                    <li>• Emergency contact details</li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Icon name="Shield" size={16} className="text-primary" />
-                    <h3 className="font-medium text-text-primary">Safety Protocols</h3>
-                  </div>
-                  <ul className="text-sm text-text-secondary space-y-1">
-                    <li>• Blood type verification</li>
-                    <li>• Cross-matching required</li>
-                    <li>• Medical supervision needed</li>
-                    <li>• Quality assurance checks</li>
-                  </ul>
-                </div>
+                <LocationMapView
+                  nearbyBloodBanks={availabilityData}
+                />
               </div>
             </div>
           </div>
         </main>
 
-        {/* Success Modal */}
+        {/* Successful Dispatch Confirmation Modal */}
         {showSuccessModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-lg medical-shadow p-6 max-w-md w-full">
-              <div className="text-center">
-                <div className="flex items-center justify-center w-16 h-16 bg-success/10 rounded-full mx-auto mb-4">
-                  <Icon name="CheckCircle" size={32} className="text-success" />
-                </div>
-                
-                <h3 className="text-xl font-semibold text-text-primary mb-2">
-                  Request Submitted Successfully!
-                </h3>
-                
-                <p className="text-text-secondary mb-4">
-                  Your emergency blood request has been sent to nearby blood banks. 
-                  Request ID: <span className="font-mono font-medium text-primary">{requestId}</span>
-                </p>
-
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-text-secondary">Blood Group:</span>
-                    <span className="font-medium text-text-primary">{selectedBloodGroup}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-text-secondary">Status:</span>
-                    <span className="text-success font-medium">Processing</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-text-secondary">Expected Response:</span>
-                    <span className="font-medium text-text-primary">5-15 minutes</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    variant="default"
-                    fullWidth
-                    onClick={handleGoToDashboard}
-                    iconName="LayoutDashboard"
-                    iconPosition="left"
-                  >
-                    Go to Dashboard
-                  </Button>
-                  
-                  <p className="text-xs text-text-secondary">
-                    You will be redirected automatically in a few seconds...
-                  </p>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+            <div className="bg-card border border-border rounded-xl p-8 max-w-md w-full medical-shadow text-center animate-scaleIn">
+              <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4 text-success">
+                <Icon name="CheckCircle2" size={36} />
               </div>
+
+              <h3 className="text-xl font-bold text-text-primary mb-2">Emergency Request Broadcasted</h3>
+              <p className="text-sm text-text-secondary mb-4">
+                Your request has been dispatched to 3 nearby blood banks and on-call eligible donors.
+              </p>
+
+              <div className="p-3 bg-muted rounded-lg font-mono text-sm font-bold text-primary mb-6">
+                Tracking ID: {requestId}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="default"
+                  onClick={handleGoToDashboard}
+                  className="flex-1"
+                >
+                  View in Dashboard
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+
+              <p className="text-xs text-text-secondary mt-4 opacity-75">
+                Auto-redirecting to dashboard in a few seconds...
+              </p>
             </div>
           </div>
         )}

@@ -1,11 +1,26 @@
+/**
+ * @file NotFound.jsx
+ * @description 404 Error page displayed when navigation targets an undefined route.
+ * Provides intuitive recovery paths back to previous page or dashboard homepage.
+ */
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from 'components/ui/Button';
 import Icon from 'components/AppIcon';
 
+/**
+ * NotFound Component
+ *
+ * @component
+ * @returns {JSX.Element} 404 error screen with navigation recovery buttons.
+ */
 const NotFound = () => {
   const navigate = useNavigate();
 
+  /**
+   * Navigates user back to the primary landing dashboard.
+   */
   const handleGoHome = () => {
     navigate('/');
   };
@@ -13,17 +28,20 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="text-center max-w-md">
+        {/* Large 404 Watermark Badge */}
         <div className="flex justify-center mb-6">
           <div className="relative">
             <h1 className="text-9xl font-bold text-primary opacity-20">404</h1>
           </div>
         </div>
 
+        {/* Informational Message */}
         <h2 className="text-2xl font-medium text-onBackground mb-2">Page Not Found</h2>
         <p className="text-onBackground/70 mb-8">
           The page you're looking for doesn't exist. Let's get you back!
         </p>
 
+        {/* Recovery Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             variant="primary"

@@ -1,3 +1,10 @@
+/**
+ * @file RegistrationForm.jsx
+ * @description Comprehensive donor & patient registration form.
+ * Captures Full Name, Email, 10-digit Indian mobile number, ABO/Rh blood group,
+ * geographic city, PIN code, and password confirmation with field-level validation rules.
+ */
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
@@ -5,7 +12,17 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 
+/**
+ * RegistrationForm Component
+ *
+ * @component
+ * @param {Object} props - Component properties.
+ * @param {(data: Object) => void} props.onSubmit - Validated submission handler.
+ * @param {boolean} props.isLoading - In-flight async submission status.
+ * @returns {JSX.Element} Validated registration form.
+ */
 const RegistrationForm = ({ onSubmit, isLoading }) => {
+  // Controlled form fields state
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -18,10 +35,12 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
     agreeToTerms: false
   });
 
+  // Client-side validation errors
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Available blood group options
   const bloodGroupOptions = [
     { value: 'A+', label: 'A+ (A Positive)' },
     { value: 'A-', label: 'A- (A Negative)' },
@@ -33,6 +52,10 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
     { value: 'O-', label: 'O- (O Negative)' }
   ];
 
+  /**
+   * Validates form parameters against regex and required constraints.
+   * @returns {boolean} True if all validations pass.
+   */
   const validateForm = () => {
     const newErrors = {};
 
@@ -51,7 +74,7 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
     if (!formData?.phone?.trim()) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^[6-9]\d{9}$/?.test(formData?.phone)) {
-      newErrors.phone = 'Please enter a valid 10-digit mobile number';
+      newErrors.phone = 'Please enter a valid 10-digit Indian mobile number';
     }
 
     if (!formData?.bloodGroup) {
@@ -59,7 +82,7 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
     }
 
     if (!formData?.location?.trim()) {
-      newErrors.location = 'Current location is required';
+      newErrors.location = 'City / Location is required';
     }
 
     if (!formData?.pinCode?.trim()) {
@@ -70,41 +93,42 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
 
     if (!formData?.password) {
       newErrors.password = 'Password is required';
-    } else if (formData?.password?.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters long';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/?.test(formData?.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase and number';
+    } else if (formData?.password?.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
-    if (!formData?.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData?.password !== formData?.confirmPassword) {
+    if (formData?.password !== formData?.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
     if (!formData?.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+      newErrors.agreeToTerms = 'You must agree to the terms and privacy policy';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors)?.length === 0;
   };
 
+  /**
+   * Updates state for target input field and clears active error.
+   * @param {string} field - Target field key.
+   * @param {any} value - Value.
+   */
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
 
-    // Clear error when user starts typing
     if (errors?.[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
+  /**
+   * Form submission event handler.
+   * @param {React.FormEvent} e - Submit event.
+   */
   const handleSubmit = (e) => {
     e?.preventDefault();
     if (validateForm()) {
@@ -112,199 +136,133 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
     }
   };
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation?.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position?.coords;
-          // Mock reverse geocoding
-          const mockLocation = `Location: ${latitude?.toFixed(4)}, ${longitude?.toFixed(4)}`;
-          handleInputChange('location', mockLocation);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          alert('Unable to get your location. Please enter manually.');
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by this browser.');
-    }
-  };
-
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-card rounded-lg medical-shadow-lg p-6">
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center w-16 h-16 bg-primary rounded-full mx-auto mb-4">
-            <Icon name="UserPlus" size={32} color="white" />
-          </div>
-          <h2 className="text-2xl font-semibold text-text-primary mb-2">Create Your Account</h2>
-          <p className="text-text-secondary">Join BloodLink AI to access emergency blood services</p>
-        </div>
+    <div className="bg-card rounded-lg medical-shadow p-6 sm:p-8 border border-border">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Full Name */}
+        <Input
+          label="Full Name"
+          placeholder="e.g. Siddharth Mishra"
+          value={formData?.fullName}
+          onChange={(e) => handleInputChange('fullName', e?.target?.value)}
+          error={errors?.fullName}
+          required
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Full Name"
-            type="text"
-            placeholder="Enter your full name"
-            value={formData?.fullName}
-            onChange={(e) => handleInputChange('fullName', e?.target?.value)}
-            error={errors?.fullName}
-            required
-          />
-
+        {/* Email & Mobile Number */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Email Address"
             type="email"
-            placeholder="Enter your email address"
+            placeholder="you@domain.com"
             value={formData?.email}
             onChange={(e) => handleInputChange('email', e?.target?.value)}
             error={errors?.email}
             required
           />
+          <Input
+            label="Mobile Number (10 Digits)"
+            type="tel"
+            placeholder="9876543210"
+            value={formData?.phone}
+            onChange={(e) => handleInputChange('phone', e?.target?.value)}
+            error={errors?.phone}
+            required
+          />
+        </div>
 
-          <div>
-            <Input
-              label="Mobile Number"
-              type="tel"
-              placeholder="Enter 10-digit mobile number"
-              value={formData?.phone}
-              onChange={(e) => handleInputChange('phone', e?.target?.value)}
-              error={errors?.phone}
-              required
-              description="Format: 9876543210 (without +91)"
-            />
-          </div>
-
+        {/* Blood Group & Location */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="Blood Group"
-            placeholder="Select your blood group"
+            placeholder="Select Blood Group"
             options={bloodGroupOptions}
             value={formData?.bloodGroup}
-            onChange={(value) => handleInputChange('bloodGroup', value)}
+            onChange={(val) => handleInputChange('bloodGroup', val)}
             error={errors?.bloodGroup}
             required
           />
-
-          <div>
-            <Input
-              label="Current Location"
-              type="text"
-              placeholder="Enter your current location"
-              value={formData?.location}
-              onChange={(e) => handleInputChange('location', e?.target?.value)}
-              error={errors?.location}
-              required
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={getCurrentLocation}
-              iconName="MapPin"
-              iconPosition="left"
-              className="mt-2 w-full"
-            >
-              Use Current Location
-            </Button>
-          </div>
-
           <Input
-            label="PIN Code"
-            type="text"
-            placeholder="Enter 6-digit PIN code"
-            value={formData?.pinCode}
-            onChange={(e) => handleInputChange('pinCode', e?.target?.value)}
-            error={errors?.pinCode}
+            label="City / Region"
+            placeholder="e.g. Prayagraj / Noida"
+            value={formData?.location}
+            onChange={(e) => handleInputChange('location', e?.target?.value)}
+            error={errors?.location}
             required
-            maxLength={6}
           />
+        </div>
 
-          <div className="relative">
-            <Input
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a strong password"
-              value={formData?.password}
-              onChange={(e) => handleInputChange('password', e?.target?.value)}
-              error={errors?.password}
-              required
-              description="Must contain uppercase, lowercase, and number"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-text-secondary hover:text-text-primary"
-            >
-              <Icon name={showPassword ? "EyeOff" : "Eye"} size={20} />
-            </button>
-          </div>
+        {/* PIN Code */}
+        <Input
+          label="Postal PIN Code (6 Digits)"
+          placeholder="201301"
+          value={formData?.pinCode}
+          onChange={(e) => handleInputChange('pinCode', e?.target?.value)}
+          error={errors?.pinCode}
+          required
+        />
 
-          <div className="relative">
-            <Input
-              label="Confirm Password"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm your password"
-              value={formData?.confirmPassword}
-              onChange={(e) => handleInputChange('confirmPassword', e?.target?.value)}
-              error={errors?.confirmPassword}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-9 text-text-secondary hover:text-text-primary"
-            >
-              <Icon name={showConfirmPassword ? "EyeOff" : "Eye"} size={20} />
-            </button>
-          </div>
+        {/* Password & Confirm Password */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={formData?.password}
+            onChange={(e) => handleInputChange('password', e?.target?.value)}
+            error={errors?.password}
+            required
+          />
+          <Input
+            label="Confirm Password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={formData?.confirmPassword}
+            onChange={(e) => handleInputChange('confirmPassword', e?.target?.value)}
+            error={errors?.confirmPassword}
+            required
+          />
+        </div>
 
-          <div className="flex items-start space-x-3">
+        {/* Terms Agreement Checkbox */}
+        <div className="pt-2">
+          <label className="flex items-start space-x-2 cursor-pointer text-xs text-text-secondary">
             <input
               type="checkbox"
-              id="agreeToTerms"
               checked={formData?.agreeToTerms}
               onChange={(e) => handleInputChange('agreeToTerms', e?.target?.checked)}
-              className="mt-1 w-4 h-4 text-primary border-border rounded focus:ring-primary"
+              className="mt-0.5 rounded border-border text-primary focus:ring-primary"
             />
-            <label htmlFor="agreeToTerms" className="text-sm text-text-secondary">
-              I agree to the{' '}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-            </label>
-          </div>
+            <span>
+              I agree to the <Link to="/terms" className="text-primary underline">Terms of Service</Link> and{' '}
+              <Link to="/privacy" className="text-primary underline">Privacy Policy</Link>.
+            </span>
+          </label>
           {errors?.agreeToTerms && (
-            <p className="text-error text-sm">{errors?.agreeToTerms}</p>
+            <p className="text-xs text-error mt-1">{errors?.agreeToTerms}</p>
           )}
-
-          <Button
-            type="submit"
-            variant="default"
-            size="lg"
-            loading={isLoading}
-            fullWidth
-            iconName="UserPlus"
-            iconPosition="left"
-            className="mt-6"
-          >
-            Create Account
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-text-secondary">
-            Already have an account?{' '}
-            <Link to="/user-login" className="text-primary hover:underline font-medium">
-              Login Instead
-            </Link>
-          </p>
         </div>
-      </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          variant="default"
+          size="lg"
+          loading={isLoading}
+          fullWidth
+          className="mt-6"
+        >
+          Complete Registration
+        </Button>
+
+        {/* Existing Account Link */}
+        <div className="text-center text-xs text-text-secondary pt-3">
+          Already have an account?{' '}
+          <Link to="/user-login" className="text-primary font-bold hover:underline">
+            Sign In here
+          </Link>
+        </div>
+      </form>
     </div>
   );
 };
