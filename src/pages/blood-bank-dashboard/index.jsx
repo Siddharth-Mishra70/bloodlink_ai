@@ -336,11 +336,43 @@ const BloodBankDashboard = () => {
   }, []);
 
   /**
-   * Triggers stock adjustment dialog for inventory units.
-   * @param {Object} [item=null] - Blood group record.
+   * Triggers stock adjustment dialog or appends inventory units dynamically.
+   * @param {Object} [stockUpdate=null] - Stock adjustment record or payload.
    */
-  const handleUpdateStock = (item = null) => {
-    console.log('Update stock for:', item);
+  const handleUpdateStock = (stockUpdate = null) => {
+    if (!stockUpdate || !stockUpdate.bloodGroup || !stockUpdate.unitsToAdd) return;
+
+    setInventoryData(prev => {
+      const existingIdx = prev.findIndex(item => item.bloodGroup === stockUpdate.bloodGroup);
+      const timestamp = `${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+      
+      if (existingIdx !== -1) {
+        const updated = [...prev];
+        const target = updated[existingIdx];
+        updated[existingIdx] = {
+          ...target,
+          currentStock: Number(target.currentStock) + Number(stockUpdate.unitsToAdd),
+          lastUpdated: timestamp,
+          updatedBy: stockUpdate.source ? `${stockUpdate.staff || 'Staff'} (${stockUpdate.source})` : target.updatedBy
+        };
+        return updated;
+      } else {
+        return [
+          ...prev,
+          {
+            id: prev.length + 1,
+            bloodGroup: stockUpdate.bloodGroup,
+            rhFactor: stockUpdate.bloodGroup.includes('-') ? 'Negative' : 'Positive',
+            currentStock: Number(stockUpdate.unitsToAdd),
+            minimumRequired: 30,
+            nextExpiry: 'In 35 days',
+            daysUntilExpiry: 35,
+            lastUpdated: timestamp,
+            updatedBy: stockUpdate.source ? `${stockUpdate.staff || 'Staff'} (${stockUpdate.source})` : 'Staff Nurse'
+          }
+        ];
+      }
+    });
   };
 
   /**
