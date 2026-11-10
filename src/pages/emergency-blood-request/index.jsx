@@ -16,6 +16,7 @@ import BloodRequestForm from './components/BloodRequestForm';
 import BloodAvailabilityPanel from './components/BloodAvailabilityPanel';
 import AlternativeBloodGroupSuggestions from './components/AlternativeBloodGroupSuggestions';
 import LocationMapView from './components/LocationMapView';
+import NaturalEmergencyRequest from '../../components/NaturalEmergencyRequest';
 
 /**
  * EmergencyBloodRequest Component
@@ -194,6 +195,15 @@ const EmergencyBloodRequest = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left 2 Columns: Requisition Form & Compatibility Engine */}
               <div className="lg:col-span-2 space-y-8">
+                {/* AI Natural Emergency Request Assistant (Gemini 2.5 Flash) */}
+                <NaturalEmergencyRequest
+                  onParsed={(parsed) => {
+                    if (parsed?.blood_group) {
+                      setSelectedBloodGroup(parsed.blood_group);
+                    }
+                  }}
+                />
+
                 <BloodRequestForm
                   onSubmit={handleFormSubmit}
                   isSubmitting={isSubmitting}

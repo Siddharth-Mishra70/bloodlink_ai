@@ -105,3 +105,4 @@ ON public.donors FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Allow select on donors" 
 ON public.donors FOR SELECT USING (true);
+

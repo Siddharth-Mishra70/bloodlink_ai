@@ -92,7 +92,91 @@ export async function registerDonor(donorData) {
   }
 }
 
+/**
+ * Dispatches an emergency blood requisition to the FastAPI backend.
+ *
+ * @async
+ * @function submitEmergencyRequest
+ * @param {Object} reqData - Blood requisition payload.
+ * @returns {Promise<Object>} Created request with assigned dispatch ID.
+ */
+export async function submitEmergencyRequest(reqData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reqData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Server error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting blood request:', error);
+    throw error;
+  }
+}
+
+/**
+ * Retrieves live blood inventory stock levels from the backend.
+ *
+ * @async
+ * @function fetchBloodInventory
+ * @returns {Promise<Array<Object>>} Inventory list by blood group.
+ */
+export async function fetchBloodInventory() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/inventory`);
+    if (!response.ok) {
+      throw new Error(`Inventory fetch failed: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching inventory:', error);
+    throw error;
+  }
+}
+
+/**
+ * Sends a conversation turn to the Gemini Blood Assistant chatbot.
+ *
+ * @async
+ * @function sendAiAssistantChat
+ * @param {string} message - User query text.
+ * @param {Array<Object>} [conversationHistory=[]] - Previous message turns.
+ * @returns {Promise<Object>} AI response object with reply and triage category.
+ */
+export async function sendAiAssistantChat(message, conversationHistory = []) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        conversation_history: conversationHistory,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `AI chat failed: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error chatting with AI assistant:', error);
+    throw error;
+  }
+}
+
 export default {
   parseEmergencyRequest,
   registerDonor,
+  submitEmergencyRequest,
+  fetchBloodInventory,
+  sendAiAssistantChat,
 };
+
