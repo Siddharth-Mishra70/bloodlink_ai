@@ -12,6 +12,7 @@ import Header from '../../components/ui/Header';
 import RegistrationForm from './components/RegistrationForm';
 import SocialLoginSection from './components/SocialLoginSection';
 import BenefitsPanel from './components/BenefitsPanel';
+import { registerDonor } from '../../services/api';
 
 /**
  * UserRegistration Component
@@ -43,8 +44,19 @@ const UserRegistration = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API network registration delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Register with the FastAPI / Supabase backend
+      try {
+        await registerDonor({
+          name: formData?.fullName,
+          blood_group: formData?.bloodGroup,
+          location: `${formData?.location || ''}${formData?.pinCode ? ` - ${formData?.pinCode}` : ''}`,
+          contact: formData?.phone,
+          email: formData?.email
+        });
+      } catch (backendError) {
+        // Fall back gracefully if backend server is not running locally yet
+        console.warn('Backend donor registration offline, continuing with local session:', backendError);
+      }
       
       const mockUserData = {
         id: 'user_' + Date.now(),

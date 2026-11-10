@@ -113,3 +113,4 @@ async def fetch_blood_inventory() -> List[Dict[str, Any]]:
         {"blood_group": "A-", "current_stock": 8, "minimum_required": 30, "days_until_expiry": 2},
         {"blood_group": "O+", "current_stock": 92, "minimum_required": 60, "days_until_expiry": 20}
     ]
+

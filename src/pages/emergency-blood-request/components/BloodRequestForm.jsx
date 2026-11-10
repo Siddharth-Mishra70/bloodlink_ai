@@ -1,6 +1,7 @@
 /**
  * @file BloodRequestForm.jsx
- * @description Patient emergency blood requisition form with client-side validation.
+ * @description Patient emergency blood requisition form with client-side validation
+ * and AI-Powered Smart Fill integration (Google Gemini).
  * Captures patient medical condition, required blood units, clinical urgency rating,
  * receiving hospital details, and emergency point-of-contact phone numbers.
  */
@@ -10,6 +11,7 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
+import { parseEmergencyRequest } from '../../../services/api';
 
 /**
  * BloodRequestForm Component
@@ -18,7 +20,7 @@ import Select from '../../../components/ui/Select';
  * @param {Object} props - Component properties.
  * @param {(data: Object) => void} props.onSubmit - Validated submission handler.
  * @param {boolean} props.isSubmitting - Async submission execution status.
- * @returns {JSX.Element} Validated emergency request form.
+ * @returns {JSX.Element} Validated emergency request form with Gemini smart-fill.
  */
 const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
   // Form input field state values
@@ -39,6 +41,11 @@ const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
 
   // Client-side field validation error messages
   const [errors, setErrors] = useState({});
+
+  // AI Smart Auto-Fill query bar states
+  const [naturalQuery, setNaturalQuery] = useState('');
+  const [isAiParsing, setIsAiParsing] = useState(false);
+  const [aiParseSuccess, setAiParseSuccess] = useState(false);
 
   // Selectable ABO & Rh blood groups
   const bloodGroupOptions = [
@@ -68,6 +75,47 @@ const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
     { value: '5', label: '5 Units' },
     { value: '6+', label: '6+ Units (Specify in notes)' }
   ];
+
+  /**
+   * Invokes the Gemini 2.5 Flash backend parser to automatically populate the form fields.
+   */
+  const handleAiSmartFill = async () => {
+    if (!naturalQuery?.trim()) return;
+
+    setIsAiParsing(true);
+    setAiParseSuccess(false);
+
+    try {
+      const parsed = await parseEmergencyRequest(naturalQuery);
+
+      if (parsed) {
+        // Map urgency level from AI response to form option
+        let mappedUrgency = 'emergency';
+        if (parsed.urgency_level?.toLowerCase() === 'normal') mappedUrgency = 'planned';
+        else if (parsed.urgency_level?.toLowerCase() === 'urgent') mappedUrgency = 'urgent';
+
+        // Check if blood group matched valid options
+        const detectedGroup = parsed.blood_group ? parsed.blood_group.toUpperCase() : '';
+
+        setFormData(prev => ({
+          ...prev,
+          bloodGroup: detectedGroup || prev.bloodGroup,
+          urgency: mappedUrgency,
+          hospitalName: parsed.location || prev.hospitalName,
+          hospitalAddress: parsed.location || prev.hospitalAddress,
+          medicalCondition: parsed.patient_notes || prev.medicalCondition,
+          additionalNotes: `Auto-parsed from emergency prompt: "${naturalQuery}"`
+        }));
+
+        setAiParseSuccess(true);
+        setTimeout(() => setAiParseSuccess(false), 4000);
+      }
+    } catch (err) {
+      console.warn('AI Parsing failed, falling back to manual input:', err);
+    } finally {
+      setIsAiParsing(false);
+    }
+  };
 
   /**
    * Updates state for a single input field and clears any active error on that field.
@@ -126,9 +174,54 @@ const BloodRequestForm = ({ onSubmit, isSubmitting }) => {
 
   return (
     <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 medical-shadow space-y-6">
-      <div className="flex items-center space-x-3 border-b border-border pb-4">
-        <Icon name="FileText" size={20} className="text-primary" />
-        <h3 className="text-lg font-semibold text-text-primary">Patient Requisition Form</h3>
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border pb-4">
+        <div className="flex items-center space-x-3">
+          <Icon name="FileText" size={20} className="text-primary" />
+          <h3 className="text-lg font-semibold text-text-primary">Patient Requisition Form</h3>
+        </div>
+        <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">
+          AI-Assisted Dispatch
+        </span>
+      </div>
+
+      {/* AI Smart-Fill Widget (Gemini 2.5 Flash) */}
+      <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50/60 to-red-50/60 border border-blue-200/80">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-2">
+            <Icon name="Sparkles" size={16} className="text-primary" />
+            <span className="text-xs font-bold text-text-primary">AI Smart Fill with Gemini</span>
+          </div>
+          {aiParseSuccess && (
+            <span className="text-[11px] text-success font-semibold flex items-center gap-1">
+              <Icon name="CheckCircle" size={12} /> Auto-filled successfully!
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-text-secondary mb-2">
+          Paste an emergency SMS, WhatsApp, or doctor note to auto-extract fields:
+        </p>
+        <div className="flex gap-2">
+          <Input
+            value={naturalQuery}
+            onChange={(e) => setNaturalQuery(e?.target?.value)}
+            placeholder="e.g. Need 2 units O- urgently at Max Hospital Saket for bypass surgery..."
+            className="flex-1 text-xs h-9 bg-white"
+          />
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleAiSmartFill}
+            loading={isAiParsing}
+            disabled={!naturalQuery?.trim() || isAiParsing}
+            iconName="Sparkles"
+            iconPosition="left"
+            className="text-xs"
+          >
+            Auto-Fill
+          </Button>
+        </div>
       </div>
 
       {/* Blood Requirements Row: Blood Group, Quantity, Urgency */}
