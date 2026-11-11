@@ -137,7 +137,7 @@ const InventoryTable = ({ inventoryData = [], onUpdateStock, onViewDetails }) =>
     }
 
     if (!stockForm.donorCampSource?.trim()) {
-      newErrors.donorCampSource = 'Donor or camp source is required';
+      newErrors.donorCampSource = 'Hospital or donor source is required';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -241,7 +241,7 @@ const InventoryTable = ({ inventoryData = [], onUpdateStock, onViewDetails }) =>
               onClick={() => handleOpenAddStock()}
               className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-xs"
             >
-              + Add Stock
+              Add Stock
             </Button>
           </div>
         </div>
@@ -469,26 +469,26 @@ const InventoryTable = ({ inventoryData = [], onUpdateStock, onViewDetails }) =>
                 )}
               </div>
 
-              {/* 3. Donor / Camp Source */}
+              {/* 3. Hospital / Donor Source */}
               <div>
                 <label htmlFor="donor-camp-source-input" className="block text-xs font-bold text-text-primary uppercase tracking-wider mb-1.5">
-                  Donor / Camp Source <span className="text-error">*</span>
+                  Hospital / Donor Source <span className="text-error">*</span>
                 </label>
                 <input
                   id="donor-camp-source-input"
                   type="text"
                   value={stockForm.donorCampSource}
                   onChange={(e) => setStockForm(prev => ({ ...prev, donorCampSource: e.target.value }))}
-                  placeholder="e.g. MNNIT Teliarganj Blood Donation Drive / Walk-in Donor"
+                  placeholder="e.g. SRN Hospital Blood Bank / MNNIT Teliarganj Camp / Walk-in Donor"
                   className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
-                {/* Quick Prayagraj Camp Chips */}
+                {/* Quick Prayagraj Hospital & Camp Chips */}
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {[
+                    'SRN Hospital Blood Bank',
+                    'Jeevan Jyoti Hospital',
                     'MNNIT Campus Drive',
-                    'Civil Lines Voluntary Walk-in',
-                    'SRN Blood Bank Camp',
-                    'Red Cross Prayagraj'
+                    'Civil Lines Voluntary Walk-in'
                   ].map((camp) => (
                     <button
                       key={camp}
