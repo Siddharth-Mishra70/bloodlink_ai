@@ -266,13 +266,13 @@ function parseBody(req) {
 function normalizeToPrayagrajZone(text) {
   const lower = (text || '').toLowerCase();
   
-  if (lower.includes('srn') || lower.includes('swaroop') || lower.includes('nehru')) {
+  if (lower.includes('srn') || lower.includes('swaroop') || lower.includes('nehru') || lower.includes('motilal')) {
     return 'Swaroop Rani Nehru (SRN) Hospital, George Town, Prayagraj';
   }
   if (lower.includes('jeevan') || lower.includes('jyoti') || lower.includes('lowther') || lower.includes('bai ka bagh')) {
     return 'Jeevan Jyoti Hospital, Lowther Road, Prayagraj';
   }
-  if (lower.includes('beli') || lower.includes('tej bahadur') || lower.includes('sapru')) {
+  if (lower.includes('beli') || lower.includes('tej bahadur') || lower.includes('sapru') || lower.includes('stanley')) {
     return 'Tej Bahadur Sapru (Beli) Hospital, Stanley Road, Prayagraj';
   }
   if (lower.includes('kamla') || lower.includes('knmh') || lower.includes('hashimpur')) {
@@ -284,7 +284,7 @@ function normalizeToPrayagrajZone(text) {
   if (lower.includes('colvin') || lower.includes('divisional')) {
     return 'Colvin Divisional Hospital, Katra, Prayagraj';
   }
-  if (lower.includes('civil lines')) return 'Civil Lines, Prayagraj';
+  if (lower.includes('civil lines') || lower.includes('mg marg') || lower.includes('subhash')) return 'Civil Lines, Prayagraj';
   if (lower.includes('teliarganj') || lower.includes('mnnit')) return 'Teliarganj / MNNIT, Prayagraj';
   if (lower.includes('george town')) return 'George Town, Prayagraj';
   if (lower.includes('chowk')) return 'Chowk, Prayagraj';
@@ -308,7 +308,7 @@ function fallbackParseQuery(query) {
     detectedGroup = `${type}${rh}`;
   }
   
-  const urgencyMatch = query.match(/\b(critical|urgent|urgently|emergency|immediately|asap|trauma|accident)\b/i);
+  const urgencyMatch = query.match(/\b(sos|critical|urgent|urgently|emergency|immediately|asap|trauma|accident)\b/i);
   const mappedLocation = normalizeToPrayagrajZone(query);
 
   return {
@@ -365,7 +365,7 @@ Do not include Markdown backticks or any conversational text. Return only the JS
         const parsed = JSON.parse(cleaned);
         return {
           blood_group: parsed.blood_group || null,
-          location: parsed.location || normalizeToPrayagrajZone(query),
+          location: normalizeToPrayagrajZone(`${parsed.location || ''} ${query}`),
           urgency_level: parsed.urgency_level || 'emergency',
           patient_notes: parsed.patient_notes || query,
           raw_query: query

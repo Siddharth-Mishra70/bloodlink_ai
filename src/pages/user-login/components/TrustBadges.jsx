@@ -1,7 +1,7 @@
 /**
  * @file TrustBadges.jsx
  * @description Institutional trust indicators, government certifications,
- * hospital partner logos (AIIMS Delhi, Apollo, Fortis), and operational metrics.
+ * Prayagraj hospital partner logos (SRN Hospital, Jeevan Jyoti, KNMH), and operational metrics.
  */
 
 import React from 'react';
@@ -19,14 +19,14 @@ const TrustBadges = () => {
   const certifications = [
     {
       id: 1,
-      name: 'Ministry of Health & Family Welfare',
+      name: 'UP State Blood Transfusion Council',
       description: 'Government Certified',
       icon: 'Shield',
       verified: true
     },
     {
       id: 2,
-      name: 'Indian Medical Association',
+      name: 'Indian Medical Association (Prayagraj)',
       description: 'IMA Approved',
       icon: 'Award',
       verified: true
@@ -40,41 +40,41 @@ const TrustBadges = () => {
     }
   ];
 
-  // Key institutional hospital networks
+  // Key Prayagraj institutional hospital networks
   const hospitalPartners = [
     {
       id: 1,
-      name: 'AIIMS Delhi',
+      name: 'Swaroop Rani Nehru (SRN) Hospital',
       logo: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=100&h=60&fit=crop&crop=center',
-      type: 'Premier Institute'
+      type: 'MLN Medical College Hub'
     },
     {
       id: 2,
-      name: 'Apollo Hospitals',
+      name: 'Jeevan Jyoti Hospital',
       logo: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=100&h=60&fit=crop&crop=center',
-      type: 'Healthcare Network'
+      type: 'Lowther Road Partner'
     },
     {
       id: 3,
-      name: 'Fortis Healthcare',
+      name: 'Kamla Nehru Memorial Hospital',
       logo: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=100&h=60&fit=crop&crop=center',
-      type: 'Medical Chain'
+      type: 'Tagore Town Centre'
     }
   ];
 
-  // High-level operational platform metrics
+  // High-level operational platform metrics for Prayagraj
   const stats = [
-    { label: 'Blood Banks Connected', value: '2,500+', icon: 'Building2' },
-    { label: 'Lives Saved', value: '50,000+', icon: 'Heart' },
-    { label: 'Emergency Requests', value: '24/7', icon: 'Clock' },
-    { label: 'Response Time', value: '<5 min', icon: 'Zap' }
+    { label: 'Prayagraj Centers', value: '18+', icon: 'Building2' },
+    { label: 'Active Donors', value: '12,400+', icon: 'Heart' },
+    { label: 'Emergency Dispatch', value: '24/7', icon: 'Clock' },
+    { label: 'Avg Response Time', value: '<12 min', icon: 'Zap' }
   ];
 
   return (
     <div className="space-y-6">
       {/* Platform Scale Statistics */}
       <div className="bg-card rounded-lg medical-shadow p-6 border border-border">
-        <h3 className="text-lg font-semibold text-text-primary mb-4">Trusted Across India</h3>
+        <h3 className="text-lg font-semibold text-text-primary mb-4">Trusted Across Prayagraj</h3>
         <div className="grid grid-cols-2 gap-4">
           {stats?.map((stat, index) => (
             <div key={index} className="text-center p-3 rounded-lg bg-surface border border-border">

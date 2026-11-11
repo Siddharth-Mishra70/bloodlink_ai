@@ -250,10 +250,10 @@ const BloodBankDashboard = () => {
       type: 'emergency',
       priority: 'high',
       title: 'Critical Blood Request',
-      message: 'Emergency O- blood request from Apollo Hospital. Patient in critical condition.',
+      message: 'Emergency O- blood request from Swaroop Rani Nehru (SRN) Hospital. Patient in critical condition.',
       timeAgo: '5 minutes ago',
       read: false,
-      location: 'Apollo Hospital',
+      location: 'SRN Hospital, George Town, Prayagraj',
       actions: [
         { label: 'Approve', variant: 'success', icon: 'Check', onClick: (n) => console.log('Approve', n) },
         { label: 'View Details', variant: 'outline', icon: 'Eye', onClick: (n) => console.log('View', n) }

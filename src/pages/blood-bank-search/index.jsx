@@ -2,7 +2,7 @@
  * @file index.jsx
  * @description Blood Bank Search and Discovery page for BloodLink AI.
  * Enables patients, hospitals, and emergency responders to discover nearby verified
- * blood bank centers across cities (such as Delhi NCR, Prayagraj, etc.), filter by blood group availability,
+ * blood bank centers exclusively across Prayagraj, Uttar Pradesh, filter by blood group availability,
  * view operating hours, toggle between list and interactive map views, and submit emergency requisitions.
  */
 

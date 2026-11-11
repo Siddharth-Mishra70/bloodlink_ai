@@ -73,7 +73,7 @@ class ParseRequestPayload(BaseModel):
         ...,
         min_length=3,
         description="Emergency text query describing the patient need, location, or blood type.",
-        example="Need 2 units of O negative blood urgently at Apollo Hospital, Sector 26 Noida. Patient in critical state after an accident."
+        example="Need 2 units of O negative blood urgently at Swaroop Rani Nehru (SRN) Hospital, George Town, Prayagraj. Patient in critical state after an accident."
     )
 
 
@@ -179,9 +179,11 @@ Respond with ONLY the JSON object. Do not include markdown code block syntax, co
 
         parsed_data = json.loads(cleaned_text)
 
+        parsed_location = normalize_to_prayagraj_zone(parsed_data.get("location") or payload.query)
+
         return ParsedBloodRequestResponse(
             blood_group=parsed_data.get("blood_group"),
-            location=parsed_data.get("location"),
+            location=parsed_location,
             urgency_level=parsed_data.get("urgency_level"),
             patient_notes=parsed_data.get("patient_notes"),
             raw_query=payload.query
@@ -199,6 +201,44 @@ Respond with ONLY the JSON object. Do not include markdown code block syntax, co
         )
 
 
+def normalize_to_prayagraj_zone(text: str) -> str:
+    """Strictly maps detected location text to canonical Prayagraj hospitals or medical zones."""
+    lower = (text or "").lower()
+
+    if any(k in lower for k in ("srn", "swaroop", "nehru", "motilal")):
+        return "Swaroop Rani Nehru (SRN) Hospital, George Town, Prayagraj"
+    if any(k in lower for k in ("jeevan", "jyoti", "lowther", "bai ka bagh")):
+        return "Jeevan Jyoti Hospital, Lowther Road, Prayagraj"
+    if any(k in lower for k in ("beli", "tej bahadur", "sapru", "stanley")):
+        return "Tej Bahadur Sapru (Beli) Hospital, Stanley Road, Prayagraj"
+    if any(k in lower for k in ("kamla", "knmh", "hashimpur")):
+        return "Kamla Nehru Memorial Hospital (KNMH), Tagore Town, Prayagraj"
+    if "nazareth" in lower:
+        return "Nazareth Hospital, Civil Lines, Prayagraj"
+    if any(k in lower for k in ("colvin", "divisional")):
+        return "Colvin Divisional Hospital, Katra, Prayagraj"
+    if any(k in lower for k in ("civil lines", "mg marg", "subhash")):
+        return "Civil Lines, Prayagraj"
+    if any(k in lower for k in ("teliarganj", "mnnit")):
+        return "Teliarganj / MNNIT, Prayagraj"
+    if "george town" in lower:
+        return "George Town, Prayagraj"
+    if "chowk" in lower:
+        return "Chowk, Prayagraj"
+    if "katra" in lower:
+        return "Old Katra, Prayagraj"
+    if "tagore town" in lower:
+        return "Tagore Town, Prayagraj"
+    if "naini" in lower:
+        return "Naini Industrial Area, Prayagraj"
+    if any(k in lower for k in ("jhunsi", "sangam")):
+        return "Jhunsi / Sangam, Prayagraj"
+    if any(k in lower for k in ("dhumanganj", "subedarganj")):
+        return "Dhumanganj, Prayagraj"
+
+    return "Civil Lines, Prayagraj, UP"
+
+
 @app.post(
     "/api/ai/chat",
     response_model=AIChatResponse,
@@ -212,10 +252,10 @@ async def ai_chat_assistant(payload: AIChatRequest):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
 
     system_instructions = {
-        "emergency": "You are an emergency medical dispatch assistant for blood emergencies. Be direct, urgent, and concise.",
-        "donor": "You are a donor care assistant. Explain donation eligibility, interval requirements, and preparation tips with empathy.",
-        "medical": "You are a specialized transfusion medicine assistant for healthcare staff. Provide precise clinical answers.",
-        "general": "You are a helpful assistant for BloodLink AI. Provide clear, accurate information regarding blood donation."
+        "emergency": "You are an emergency medical dispatch assistant for blood emergencies across Prayagraj, Uttar Pradesh (SRN Hospital, Jeevan Jyoti Hospital, Beli Hospital, Civil Lines, Teliarganj). Be direct, urgent, and concise.",
+        "donor": "You are a donor care assistant for BloodLink AI Prayagraj. Explain donation eligibility, interval requirements, and preparation tips with empathy.",
+        "medical": "You are a specialized transfusion medicine assistant for Prayagraj healthcare staff. Provide precise clinical answers.",
+        "general": "You are a helpful assistant for BloodLink AI in Prayagraj, UP. Provide clear, accurate information regarding blood donation and local blood banks."
     }
 
     system_prompt = system_instructions.get(payload.context or "general", system_instructions["general"])
