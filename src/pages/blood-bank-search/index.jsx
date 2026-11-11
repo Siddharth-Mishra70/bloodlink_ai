@@ -386,8 +386,8 @@ const BloodBankSearch = () => {
    * @param {Object} bloodBank - Target facility.
    */
   const handleRequestBlood = (bloodBank) => {
-    navigate('/emergency-blood-request', { 
-      state: { selectedBloodBank: bloodBank } 
+    navigate('/emergency-blood-request', {
+      state: { selectedBloodBank: bloodBank }
     });
   };
 
@@ -435,7 +435,7 @@ const BloodBankSearch = () => {
                 Filters
               </Button>
             </div>
-            
+
             {showFilters && (
               <div className="mt-4">
                 <SearchFilters
